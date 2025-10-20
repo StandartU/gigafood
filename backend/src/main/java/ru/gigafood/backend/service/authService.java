@@ -80,7 +80,6 @@ public class authService {
                 .orElseThrow(() -> new RuntimeException("Role not found"));
 
         user.setRoles(Set.of(userRole));
-        user.setCreatedAt(new Date());
         userRepository.save(user);
 
 
