@@ -9,8 +9,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.servlet.http.HttpServletRequest;
+import ru.gigafood.backend.config.TokenService;
 import ru.gigafood.backend.dto.DishDto;
+import ru.gigafood.backend.entity.Meal;
+import ru.gigafood.backend.entity.User;
 import ru.gigafood.backend.repository.MealRepository;
+import ru.gigafood.backend.repository.UserRepository;
 
 @Service
 public class DishService {
@@ -21,12 +25,22 @@ public class DishService {
     @Autowired
     private PhotoService photoService;
 
-    @Autowired MealRepository mealRepository;
+    @Autowired
+    MealRepository mealRepository;
+
+    @Autowired
+    TokenService tokenService;
+
+    @Autowired
+    UserRepository userRepository;
 
     public DishDto.analyzeResponse analyze(DishDto.analyzeRequest dtoRequest, HttpServletRequest httpRequest) throws Exception {
 
 		String headerAuth = httpRequest.getHeader("Authorization");		 
 		String accessToken = headerAuth.substring(7, headerAuth.length());
+
+        String email = tokenService.parseToken(accessToken);
+		User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
 
         String jsonResponse = aiWebClientService.classifyFood(dtoRequest.file());
 
@@ -43,6 +57,16 @@ public class DishService {
 
         photoService.addAttachment(dtoRequest.file());
 
+        Meal meal = new Meal();
+        meal.setFoodName(foodName);
+        meal.setWeight(weight);
+        meal.setCaloriesEstimated(caloriesEstimated);
+        meal.setProteinEstimated(proteinEstimated);
+        meal.setFatsEstimated(fatsEstimated);
+        meal.setCarbsEstimated(carbsEstimated);
+        meal.setUser(user);
+        
+        mealRepository.save(meal);
 
 
 
