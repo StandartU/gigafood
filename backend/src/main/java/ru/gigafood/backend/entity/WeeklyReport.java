@@ -9,13 +9,20 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Min;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 
 @Entity
 @Table(name = "weekly_report")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class WeeklyReport {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,7 +39,8 @@ public class WeeklyReport {
     @Min(0)
     private Integer totalCalories;
 
-    @Column(columnDefinition = "TEXT", name = "recomendations")
+    @Lob
+    @Column(name = "recomendations")
     private String recomendations;
     
     @ManyToOne(fetch = FetchType.LAZY)

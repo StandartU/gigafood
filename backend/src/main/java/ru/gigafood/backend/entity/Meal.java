@@ -1,6 +1,7 @@
 package ru.gigafood.backend.entity;
 
 import java.util.Date;
+import java.util.UUID;
 
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -11,7 +12,9 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
@@ -38,25 +41,28 @@ public class Meal {
     @Column(name = "food_name")
     private String foodName;
 
+    @Column(name = "weight_g")
+    private Integer weight;
+
     @Column(name = "calories_etimated")
     @Min(0)
     private Integer caloriesEstimated;
+
+    @Column(name = "manual_correction")
+    @Lob
+    private String manualCorrection;
 
     @Column(name = "fats_etimated")
     @Min(0)
     private Integer fatsEstimated;
 
+    @Column(name = "fats_etimated")
+    @Min(0)
+    private Integer proteinEstimated;
+
     @Column(name = "carbs_estimatedd")
     @Min(0)
     private Integer carbsEstimated;
-    
-    @Column(name = "manual_correction")
-    @Min(0)
-    private String manualCorrection;
-
-    @Column(name = "calories_corrected")
-    @Min(0)
-    private Integer caloriesCorrected;
 
     @Column(name = "meal_time")
     private Date mealTime;
@@ -69,5 +75,15 @@ public class Meal {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
+
+    @Column(name = "uuid", nullable = false, unique = true, updatable = false, length = 8)
+    private String uuid;
+
+    @PrePersist
+    public void generateUuid() {
+        if (uuid == null) {
+            uuid = UUID.randomUUID().toString().replace("-", "").substring(0, 8).toUpperCase();
+        }
+}
 
 }

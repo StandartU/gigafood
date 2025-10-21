@@ -12,14 +12,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.servlet.http.HttpServletRequest;
 import ru.gigafood.backend.dto.AuthDto;
-import ru.gigafood.backend.service.authService;
+import ru.gigafood.backend.service.AuthService;
 
 @RestController
-@RequestMapping(value = "/gigafood/api/v1/", produces = {"application/json"})
+@RequestMapping(value = "/gigafood/api/v1/auth", produces = {"application/json"})
 public class AuthController {
 
     @Autowired
-    private authService authService;
+    private AuthService authService;
 
     @PostMapping("/signup")
 	public ResponseEntity<AuthDto.SingupResponse> singup(@RequestBody AuthDto.SingupRequest request) {

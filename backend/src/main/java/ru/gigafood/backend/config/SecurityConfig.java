@@ -25,10 +25,26 @@ import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
+import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.security.SecurityScheme;
+import ru.gigafood.backend.config.properties.RsaProperties;
 import ru.gigafood.backend.service.CustomUsrDetailsService;
 
 @Configuration
 @EnableWebSecurity
+@OpenAPIDefinition(
+    info = @Info(title = "GigaFood API", version = "v1"),
+    security = @SecurityRequirement(name = "bearerAuth")
+)
+@SecurityScheme(
+    name = "bearerAuth",
+    type = SecuritySchemeType.HTTP,
+    scheme = "bearer",
+    bearerFormat = "JWT"
+)
 public class SecurityConfig {
 
 	@Autowired
@@ -62,11 +78,15 @@ public class SecurityConfig {
 		return http
             .csrf(csrf -> csrf.disable())
 			.authorizeHttpRequests((authorize) -> authorize
-                .requestMatchers("/gigafood/api/v1/login").permitAll()
-				.requestMatchers("/gigafood/api/v1/signup").permitAll()
-                .requestMatchers("/gigafood/api/v1/token/refresh").permitAll()
+				.requestMatchers("/gigafood/api/v1/auth/**").permitAll()
 				.requestMatchers("/gigafood/api/v1/admin").hasAuthority("SCOPE_adm")
 				.requestMatchers("/gigafood/api/v1/user").hasAuthority("SCOPE_usr")
+				.requestMatchers(
+					"/swagger-ui/**",
+					"/swagger-ui.html",
+					"/v3/api-docs/**",
+					"/v3/api-docs.yaml"
+				).permitAll()
 				.anyRequest().authenticated()
 			)
         	.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

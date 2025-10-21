@@ -1,6 +1,5 @@
 package ru.gigafood.backend.entity;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -24,11 +23,15 @@ import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Table(name = "users")
 @Entity
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class User {
 	
 	@Id

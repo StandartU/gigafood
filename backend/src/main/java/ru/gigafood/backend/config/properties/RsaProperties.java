@@ -1,4 +1,4 @@
-package ru.gigafood.backend.config;
+package ru.gigafood.backend.config.properties;
 
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;

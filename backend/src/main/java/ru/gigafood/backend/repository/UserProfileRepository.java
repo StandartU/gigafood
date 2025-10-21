@@ -5,11 +5,11 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import ru.gigafood.backend.entity.User;
+import ru.gigafood.backend.entity.UserProfile;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, Long> {
-	Optional<User> findByEmail(String email);
+public interface UserProfileRepository extends JpaRepository<UserProfile, Long> {
+	Optional<UserProfile> findByEmail(String email);
 
     boolean existsByEmail(String email);
 }
