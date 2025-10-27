@@ -13,12 +13,13 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U gigafood"]
+      test: ["CMD-SHELL", "pg_isready -U user"]
       interval: 10s
       retries: 5
 
   backend:
-    build: .
+    build:
+      context: ../backend
     container_name: gigafood-backend
     depends_on:
       db:
@@ -26,18 +27,18 @@ services:
       fastapi:
         condition: service_started
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:port/dbname
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/dbname
       SPRING_DATASOURCE_USERNAME: user
       SPRING_DATASOURCE_PASSWORD: password
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
     ports:
       - "8080:8080"
     volumes:
-      - ./uploads:/app/uploads
+      - ../backend/uploads:/app/uploads
 
   fastapi:
     build:
-      context: ./ai
+      context: ../ai
       dockerfile: Dockerfile
     container_name: gigafood-fastapi
     ports:
