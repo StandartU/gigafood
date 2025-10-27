@@ -5,6 +5,8 @@ import java.util.UUID;
 
 import org.hibernate.annotations.CreationTimestamp;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -33,6 +35,7 @@ public class Meal {
     @Id
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JsonIgnore
     private Long id;
 
     @Column(name = "photo_url")
@@ -56,7 +59,7 @@ public class Meal {
     @Min(0)
     private Integer fatsEstimated;
 
-    @Column(name = "fats_etimated")
+    @Column(name = "protein_etimated")
     @Min(0)
     private Integer proteinEstimated;
 
@@ -74,6 +77,7 @@ public class Meal {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
+    @JsonIgnore
     private User user;
 
     @Column(name = "uuid", nullable = false, unique = true, updatable = false, length = 8)

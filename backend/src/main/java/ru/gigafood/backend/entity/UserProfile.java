@@ -4,6 +4,8 @@ import java.util.Date;
 
 import org.hibernate.annotations.CreationTimestamp;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -35,11 +37,13 @@ public class UserProfile {
 
     @Id
     @Column
+    @JsonIgnore
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY)
     @MapsId
     @JoinColumn(name = "user_id")
+    @JsonIgnore
     private User user;
 
     @Enumerated(EnumType.STRING)
@@ -72,6 +76,9 @@ public class UserProfile {
     @Column(name = "daily_callorie_limit")
     @Min(0)
     private Integer dailyCalorieLimit;
+
+    @Column(name = "auto_calc_callories_limit")
+    private Boolean autoCalcCalloriesLimit;
     
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)

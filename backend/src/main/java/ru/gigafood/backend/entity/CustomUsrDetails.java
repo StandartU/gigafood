@@ -9,11 +9,14 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public class CustomUsrDetails implements UserDetails {
 
 	private static final long serialVersionUID = 1L;	
 	private User user;
 	
+	@JsonIgnore
 	public CustomUsrDetails(User user) {
 		this.user = user;
 	}

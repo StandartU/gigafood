@@ -5,24 +5,32 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 
+import ru.gigafood.backend.entity.User;
+import ru.gigafood.backend.repository.UserRepository;
+
 import com.nimbusds.jwt.SignedJWT;
 
+import jakarta.servlet.http.HttpServletRequest;
 import ru.gigafood.backend.entity.CustomUsrDetails;
 
 public class TokenService  {
 	
-	private final JwtEncoder jwtEncoder;
+        private final JwtEncoder jwtEncoder;
 
-	public TokenService(JwtEncoder jwtEncoder) {
-		super();
-		this.jwtEncoder = jwtEncoder;
-	}
-	
+        public TokenService(JwtEncoder jwtEncoder) {
+                super();
+                this.jwtEncoder = jwtEncoder;
+        }
+
+    @Autowired
+    private UserRepository userRepository;
+    
     public String generateAccessToken(CustomUsrDetails usrDetails) {
         Instant now = Instant.now();
         String scope = usrDetails.getAuthorities().stream()
@@ -64,5 +72,14 @@ public class TokenService  {
 			e.printStackTrace();
 		}
     	return null;
+    }
+
+    public User getUserByRequest(HttpServletRequest httpRequest) {
+        String headerAuth = httpRequest.getHeader("Authorization");		 
+        String accessToken = headerAuth.substring(7, headerAuth.length());
+
+        String email = parseToken(accessToken);
+	User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+        return user;
     }
 }

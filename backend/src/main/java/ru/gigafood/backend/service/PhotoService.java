@@ -20,12 +20,11 @@ import ru.gigafood.backend.config.properties.AppProperties;
 import ru.gigafood.backend.entity.Photo;
 import ru.gigafood.backend.entity.User;
 import ru.gigafood.backend.repository.PhotoRepository;
-import ru.gigafood.backend.service.interfaces.PhotoServiceInterface;
 import ru.gigafood.backend.tool.FileTools;
 
 @Service
 @RequiredArgsConstructor
-public class PhotoService implements PhotoServiceInterface {
+public class PhotoService {
 
   @Autowired
   private PhotoRepository attachmentRepository;
@@ -43,8 +42,7 @@ public class PhotoService implements PhotoServiceInterface {
    * @param user
    * @throws IOException
    */
-  @Override
-  public Photo addAttachment(MultipartFile file) throws IOException {
+  public Photo addAttachment(MultipartFile file, User user) throws IOException {
 
     File uploadDir = new File(appProperties.getUploadPath());
 
@@ -61,6 +59,7 @@ public class PhotoService implements PhotoServiceInterface {
         .uploadDate(LocalDate.now())
         .extension(fileTools.getFileExtension(file.getOriginalFilename()))
         .downloadLink("/attachments/get/" + Year.now() + "/" + fileName)
+        .user(user)
         .build();
     attachmentRepository.save(attachment);
     return attachment;
@@ -73,7 +72,6 @@ public class PhotoService implements PhotoServiceInterface {
    * @param attachId
    * @return
    */
-  @Override
   public Photo findAttachById(Long attachId) throws RuntimeException {
     return attachmentRepository.findById(attachId).orElseThrow(() -> new RuntimeException("Attachment not found!"));
   }
@@ -86,7 +84,6 @@ public class PhotoService implements PhotoServiceInterface {
    * @return
    * @throws MalformedURLException
    */
-  @Override
   public Resource loadFileAsResource(String fileName) throws MalformedURLException {
       Path fileStorageLocation =
           Paths.get(appProperties.getUploadPath()).toAbsolutePath().normalize();

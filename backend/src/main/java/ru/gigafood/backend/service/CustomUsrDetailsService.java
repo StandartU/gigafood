@@ -9,6 +9,7 @@ import ru.gigafood.backend.entity.CustomUsrDetails;
 import ru.gigafood.backend.entity.User;
 import ru.gigafood.backend.repository.UserRepository;
 
+
 public class CustomUsrDetailsService implements UserDetailsService{
 
 	@Autowired
