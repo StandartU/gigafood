@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GigaFood - Еженедельный отчет</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="page-title">Еженедельный отчет</h1>
+            <div class="header-actions">
+                <button class="btn btn-menu" onclick="window.location.href='menu.html'">☰</button>
+                <button class="btn btn-logout" onclick="logout()">Выйти</button>
+            </div>
+        </header>
+        
+        <main class="main">
+            <div class="report-content">
+                <div class="card">
+                    <h3 class="card-title">Статистика за неделю</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span class="stat-value">8400</span>
+                            <span class="stat-label">ккал потреблено</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">14000</span>
+                            <span class="stat-label">ккал цель</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">60%</span>
+                            <span class="stat-label">выполнение цели</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3 class="card-title">Средние показатели</h3>
+                    <div class="averages">
+                        <div class="average-item">
+                            <span class="average-label">Белки:</span>
+                            <span class="average-value">65г/день</span>
+                        </div>
+                        <div class="average-item">
+                            <span class="average-label">Жиры:</span>
+                            <span class="average-value">45г/день</span>
+                        </div>
+                        <div class="average-item">
+                            <span class="average-label">Углеводы:</span>
+                            <span class="average-value">180г/день</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3 class="card-title">Достижения</h3>
+                    <ul class="achievements-list">
+                        <li>✅ Питались регулярно 5 из 7 дней</li>
+                        <li>✅ Потребляли достаточно белка</li>
+                        <li>⚠️ Превысили норму сахара на 15%</li>
+                    </ul>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>

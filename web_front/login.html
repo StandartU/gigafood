@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GigaFood - Вход</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="logo">GigaFood</h1>
+        </header>
+        
+        <main class="main">
+            <div class="auth-container">
+                <form class="auth-form" id="loginForm">
+                    <h2 class="form-title">Вход в систему</h2>
+                    <div class="form-group">
+                        <input type="email" id="email" placeholder="Электронная почта" required>
+                        <div class="error-message" id="emailError"></div>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" id="password" placeholder="Пароль" required>
+                        <div class="error-message" id="passwordError"></div>
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="loginBtn">
+                        <span class="btn-text">Войти</span>
+                        <span class="btn-loading" style="display: none;">Вход...</span>
+                    </button>
+                    <div class="auth-links">
+                        <a href="register.html" class="auth-link">Нет аккаунта? Зарегистрироваться</a>
+                        <a href="password-reset.html" class="auth-link">Забыли пароль?</a>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>

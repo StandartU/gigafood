@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GigaFood - Дашборд</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="welcome-title">Добро пожаловать</h1>
+            <div class="header-actions">
+                <button class="btn btn-menu" onclick="window.location.href='menu.html'">☰</button>
+                <button class="btn btn-logout" onclick="logout()">Выйти</button>
+            </div>
+        </header>
+        
+        <main class="main">
+            <div class="dashboard-content">
+                <!-- Цель по калориям -->
+                <div class="card">
+                    <h3 class="card-title">Цель по калориям</h3>
+                    <div class="calorie-goal">
+                        <span class="goal-number">2000 ккал</span>
+                        <p class="consumed">Потреблено: 1200 ккал</p>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 60%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Кнопки действий -->
+                <div class="action-buttons">
+                    <button class="btn btn-camera">
+                        <span class="btn-icon">📷</span>
+                        Загрузить фото еды
+                    </button>
+                    <button class="btn btn-manual">
+                        Ввести вручную
+                    </button>
+                </div>
+                
+                <!-- Рекомендации -->
+                <div class="card">
+                    <h3 class="card-title">Рекомендации</h3>
+                    <ul class="recommendations-list">
+                        <li>Увеличьте потребление белка до 100 г в день.</li>
+                        <li>Сократите потребление сахара на 20%.</li>
+                    </ul>
+                    <button class="btn btn-secondary" onclick="window.location.href='recommendations.html'">
+                        Подробнее
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
