@@ -86,7 +86,7 @@ export function initLoginForm() {
                     loggedInAt: new Date().toISOString()
                 });
 
-                tokens = await AuthService.login({username: email, password: password});
+                const tokens = await AuthService.login({username: email, password: password});
 
                 saveTokens({access: tokens.access_jwt_token, refresh: tokens.refresh_jwt_token});
                 

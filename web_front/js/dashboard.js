@@ -1,4 +1,5 @@
 import { getUserData, saveUserData } from './storage.js';
+import { DishService } from './api/services/dishS.js'
 
 // Данные за неделю
 function getWeeklyData() {
@@ -17,56 +18,18 @@ function getWeeklyData() {
     };
 }
 
-function recognizeFood() {
-    return new Promise(resolve => {
-        setTimeout(() => {
-            const foods = [
-                {
-                    name: 'Омлет с овощами',
-                    calories: 320,
-                    protein: 18,
-                    fat: 22,
-                    carbs: 12
-                },
-                {
-                    name: 'Куриная грудка с рисом',
-                    calories: 480,
-                    protein: 45,
-                    fat: 8,
-                    carbs: 55
-                },
-                {
-                    name: 'Салат Цезарь',
-                    calories: 410,
-                    protein: 15,
-                    fat: 28,
-                    carbs: 22
-                },
-                {
-                    name: 'Паста карбонара',
-                    calories: 720,
-                    protein: 24,
-                    fat: 38,
-                    carbs: 68
-                },
-                {
-                    name: 'Смузи с бананом',
-                    calories: 280,
-                    protein: 6,
-                    fat: 3,
-                    carbs: 58
-                },
-                {
-                    name: 'Бургер с картошкой',
-                    calories: 850,
-                    protein: 32,
-                    fat: 42,
-                    carbs: 88
-                }
-            ];
-            resolve(foods[Math.floor(Math.random() * foods.length)]);
-        }, 800);
-    });
+async function recognizeFood(file) {
+    await new Promise(res => setTimeout(res, 800));
+
+    const response = await DishService.analyze(file);
+
+    return {
+        name: response.foodName,
+        calories: response.caloriesEstimated || 0,
+        protein: response.proteinEstimated || 0,
+        fat: response.fatsEstimated || 0,
+        carbs: response.carbsEstimated || 0
+    };
 }
 
 // Переменная для хранения текущего элемента еды
@@ -75,7 +38,7 @@ let currentFoodItem = null;
 function addFoodToTape(food, imageUrl = null) {
     const tape = document.getElementById('foodTape');
     const card = document.getElementById('foodTapeCard');
-    const container = card.querySelector('.food-tape-container');
+    const container = card.qimageUrluerySelector('.food-tape-container');
     const empty = tape.querySelector('.empty-state');
 
     // Показываем карточку и убираем пустое состояние
