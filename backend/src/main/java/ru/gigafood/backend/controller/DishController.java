@@ -20,7 +20,7 @@ import ru.gigafood.backend.entity.Meal;
 import ru.gigafood.backend.service.DishService;
 
 @RestController
-@CrossOrigin(origins = "*") 
+@CrossOrigin
 @RequestMapping(value = "/gigafood/api/v1/dish", produces = {"application/json"})
 public class DishController {
     @Autowired

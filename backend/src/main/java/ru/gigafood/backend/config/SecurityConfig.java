@@ -17,10 +17,9 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
+import org.springframework.web.reactive.config.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
@@ -39,6 +38,7 @@ import ru.gigafood.backend.service.CustomUsrDetailsService;
 
 @Configuration
 @EnableWebSecurity
+@EnableWebMvc
 @OpenAPIDefinition(
     info = @Info(title = "GigaFood API", version = "v1"),
     security = @SecurityRequirement(name = "bearerAuth")
@@ -49,7 +49,7 @@ import ru.gigafood.backend.service.CustomUsrDetailsService;
     scheme = "bearer",
     bearerFormat = "JWT"
 )
-public class SecurityConfig {
+public class SecurityConfig implements WebMvcConfigurer {
 
 	@Autowired
 	private RsaProperties rsaKeys;
@@ -76,19 +76,7 @@ public class SecurityConfig {
         return new ProviderManager(authProvider);
 	}
 
-	@Bean
-	public CorsFilter corsFilter() {
-		CorsConfiguration config = new CorsConfiguration();
-		config.setAllowCredentials(true);
-		config.addAllowedOriginPattern("*");
-		config.addAllowedHeader("*");   
-		config.addAllowedMethod("*");  
 
-		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-		source.registerCorsConfiguration("/**", config);
-
-		return new CorsFilter(source);
-	}
 
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -121,5 +109,15 @@ public class SecurityConfig {
         JWK jwk = new RSAKey.Builder(rsaKeys.publicKey()).privateKey(rsaKeys.privateKey()).build();
 		JWKSource<SecurityContext> jwkSource = new ImmutableJWKSet<>(new JWKSet(jwk));
 		return new NimbusJwtEncoder(jwkSource);
+	}
+
+	public void addCorsMappings(CorsRegistry registry) {
+
+		registry.addMapping("/gigafood/api/v1/**")
+			.allowedOrigins("http://localhost:5500")
+			.allowedMethods("*")
+			.allowedHeaders("*")
+			.exposedHeaders("*")
+			.allowCredentials(true).maxAge(3600);
 	}
 }

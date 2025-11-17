@@ -16,7 +16,7 @@ import ru.gigafood.backend.dto.UserDto;
 import ru.gigafood.backend.service.UserService;
 
 @RestController
-@CrossOrigin(origins = "*") 
+@CrossOrigin
 @RequestMapping(value = "/gigafood/api/v1/user", produces = {"application/json"})
 public class UserController {
     @Autowired

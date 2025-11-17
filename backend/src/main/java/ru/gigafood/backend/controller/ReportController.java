@@ -17,7 +17,7 @@ import ru.gigafood.backend.dto.ReportDto;
 import ru.gigafood.backend.service.ReportService;
 
 @RestController
-@CrossOrigin(origins = "*") 
+@CrossOrigin
 @RequestMapping(value = "/gigafood/api/v1/report", produces = {"application/json"})
 public class ReportController {
     @Autowired
