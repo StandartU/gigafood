@@ -87,8 +87,10 @@ export function initLoginForm() {
                 });
 
                 const tokens = await AuthService.login({username: email, password: password});
-
-                saveTokens({access: tokens.access_jwt_token, refresh: tokens.refresh_jwt_token});
+                saveTokens({ 
+                    access: `Bearer ${tokens.access_jwt_token}`, 
+                    refresh: `Bearer ${tokens.refresh_jwt_token}`
+                });
                 
                 alert('Вход выполнен успешно!');
                 window.location.href = 'dashboard.html';

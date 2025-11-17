@@ -1,4 +1,4 @@
-import { getUserData, saveUserData } from './storage.js';
+import { getTokens, getUserData, saveUserData } from './storage.js';
 import { DishService } from './api/services/dishS.js'
 
 // Данные за неделю
@@ -21,7 +21,7 @@ function getWeeklyData() {
 async function recognizeFood(file) {
     await new Promise(res => setTimeout(res, 800));
 
-    const response = await DishService.analyze(file);
+    const response = await DishService.analyze(file, {Authorization: getTokens()?.access});
 
     return {
         name: response.foodName,

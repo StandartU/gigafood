@@ -36,3 +36,9 @@ export function removeUserData() {
 export function saveTokens(tokens) {
     localStorage.setItem('tokens', JSON.stringify(tokens))
 }
+
+export function getTokens() {
+    const tokensString = localStorage.getItem('tokens');
+    if (!tokensString) return null;  // если токенов нет
+    return JSON.parse(tokensString);
+}
