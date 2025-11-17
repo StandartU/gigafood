@@ -144,8 +144,55 @@
         </div>
     </div>
 
+    <!-- Модальное окно для редактирования -->
+<div id="editFoodModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Редактировать блюдо</h3>
+            <button class="modal-close" onclick="closeEditModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <form id="editFoodForm" class="food-form">
+                <input type="hidden" id="editFoodId">
+                <div class="form-group">
+                    <label for="editFoodName">Название блюда</label>
+                    <input type="text" id="editFoodName" placeholder="Например: Омлет с овощами" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editFoodCalories">Калории (ккал)</label>
+                    <input type="number" id="editFoodCalories" placeholder="0" min="0" required>
+                </div>
+                
+                <div class="nutrients-grid">
+                    <div class="form-group">
+                        <label for="editFoodProtein">Белки (г)</label>
+                        <input type="number" id="editFoodProtein" placeholder="0" min="0" value="0">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editFoodFat">Жиры (г)</label>
+                        <input type="number" id="editFoodFat" placeholder="0" min="0" value="0">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editFoodCarbs">Углеводы (г)</label>
+                        <input type="number" id="editFoodCarbs" placeholder="0" min="0" value="0">
+                    </div>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                    <button type="button" class="btn btn-danger" onclick="deleteCurrentFood()">Удалить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="module" src="js/storage.js"></script>
+    <script type="module" src="js/app.js"></script>
     <script type="module" src="js/dashboard.js"></script>
 </body>
 </html>
