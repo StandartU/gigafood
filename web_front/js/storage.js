@@ -32,3 +32,7 @@ export function removeCurrentUser() {
 export function removeUserData() {
     localStorage.removeItem('gigafood_user');
 }
+
+export function saveTokens(tokens) {
+    localStorage.setItem('tokens', JSON.stringify(tokens))
+}

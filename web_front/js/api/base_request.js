@@ -1,5 +1,4 @@
-// apiService.js
-const BASE_URL = "https://your-api-domain.com/gigafood/api/v1";
+const BASE_URL = "https://localhost:8080/gigafood/api/v1";
 
 export async function apiRequest({ path, method = "GET", body = null, headers = {} }) {
     const url = `${BASE_URL}${path}`;
