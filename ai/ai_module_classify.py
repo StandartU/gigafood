@@ -1,25 +1,36 @@
 import requests
-from transformers import AutoFeatureExtractor, ResNetForImageClassification
+from transformers import AutoImageProcessor, AutoModelForImageClassification
+from torch.nn.functional import softmax
+import re
 from PIL import Image
 import torch
+from pathlib import Path
 
-MODEL_NAME = "microsoft/resnet-50"
-MODEL_FOOD101 = "karakuri-ai/resnet50-food101"
+BASE_DIR = Path(__file__).parent.resolve()
+MODEL_PATH = BASE_DIR / "models" / "food-category-classification-v2.0"
 
-extractor = AutoFeatureExtractor.from_pretrained(MODEL_FOOD101)
-model = ResNetForImageClassification.from_pretrained(MODEL_FOOD101)
+processor = AutoImageProcessor.from_pretrained(MODEL_PATH)
+model = AutoModelForImageClassification.from_pretrained(MODEL_PATH)
+model.eval()
 
-def classify_food(image: Image.Image) -> str:
-    inputs = extractor(images=image, return_tensors="pt")
+
+def classify_food(image: Image.Image) -> dict:
+    inputs = processor(images=image, return_tensors="pt")
     with torch.no_grad():
         logits = model(**inputs).logits
-    pred_id = logits.argmax(-1).item()
-    return model.config.id2label[pred_id]
+    probs = softmax(logits, dim=-1)
+    conf, pred_id = probs.max(-1)
+    return {"label": model.config.id2label[pred_id.item()], "confidence": conf.item()}
+
+
+def normalize_food_name(name: str):
+    return re.sub(r'[_\-]', ' ', name).title()
+
 
 def get_nutrition_info(food_name: str):
     search_url = "https://world.openfoodfacts.org/cgi/search.pl"
     params = {
-        "search_terms": food_name,
+        "search_terms": normalize_food_name(food_name),
         "search_simple": 1,
         "action": "process",
         "json": 1,
@@ -41,12 +52,8 @@ def get_nutrition_info(food_name: str):
     product = data["products"][0]
     nutriments = product.get("nutriments", {})
 
-    # Получаем порцию (реальный вес)
-    weight = nutriments.get("serving_size_g")
-    if weight is None:
-        weight = 100  # если порция не указана, ставим 100 г
+    weight = nutriments.get("serving_size_g", 100)
 
-    # Берём БЖУ на 100 г и пересчитываем на вес порции
     def scale(nutrient_name):
         value_per_100g = nutriments.get(nutrient_name)
         if value_per_100g is None:
@@ -61,10 +68,13 @@ def get_nutrition_info(food_name: str):
         "carbs": scale("carbohydrates_100g")
     }
 
+
 def classify_food_with_nutrition(image: Image.Image):
-    label = classify_food(image)
+    result = classify_food(image)
+    label = result["label"]
     nutrition = get_nutrition_info(label)
     return {
         "name": label,
-        **nutrition
+        **nutrition,
+        "confidence": result["confidence"]
     }

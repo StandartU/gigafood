@@ -1,22 +1,34 @@
-from transformers import AutoTokenizer, AutoModelForCausalLM
-import torch
+from ollama import chat, ChatResponse, pull
+import time
 
-MODEL_NAME = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+MODEL_NAME = "gemma3:1b"
 
-tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-model = AutoModelForCausalLM.from_pretrained(
-    MODEL_NAME,
-    torch_dtype=torch.float16,
-    device_map="auto"
-)
+for i in range(10):
+    try:
+        pull(model=MODEL_NAME)
+        print("Connected to Ollama")
+        break
+    except Exception as e:
+        print(f"Failed to connect to Ollama, retrying... ({i+1}/10)")
+        time.sleep(3)
+else:
+    raise RuntimeError("Cannot connect to Ollama after multiple attempts")
+
 
 def generate_text(prompt: str, max_tokens: int = 200):
-    inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
-    outputs = model.generate(
-        **inputs,
-        max_new_tokens=max_tokens,
-        do_sample=True,
-        temperature=0.7,
-        top_p=0.9
+    response: ChatResponse = chat(
+        model=MODEL_NAME,
+        messages=[
+            {
+                "role": "user",
+                "content": prompt,
+            }
+        ],
+        options={
+            "num_predict": max_tokens,
+            "temperature": 0.7,
+            "top_p": 0.9
+        }
     )
-    return tokenizer.decode(outputs[0], skip_special_tokens=True)
+
+    return response.message.content
