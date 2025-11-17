@@ -114,10 +114,9 @@ public class SecurityConfig implements WebMvcConfigurer {
 	public void addCorsMappings(CorsRegistry registry) {
 
 		registry.addMapping("/gigafood/api/v1/**")
-			.allowedOrigins("http://localhost:5500")
+			.allowedOrigins("*")
 			.allowedMethods("*")
 			.allowedHeaders("*")
-			.exposedHeaders("*")
-			.allowCredentials(true).maxAge(3600);
+			.allowCredentials(false);
 	}
 }
