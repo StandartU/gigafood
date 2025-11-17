@@ -80,9 +80,9 @@ public class SecurityConfig {
 	public CorsFilter corsFilter() {
 		CorsConfiguration config = new CorsConfiguration();
 		config.setAllowCredentials(true);
-		config.addAllowedOriginPattern("*"); // Разрешаем любые источники
-		config.addAllowedHeader("*");        // Разрешаем любые заголовки
-		config.addAllowedMethod("*");        // Разрешаем все методы (GET, POST, etc.)
+		config.addAllowedOriginPattern("*");
+		config.addAllowedHeader("*");   
+		config.addAllowedMethod("*");  
 
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		source.registerCorsConfiguration("/**", config);
