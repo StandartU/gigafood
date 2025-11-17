@@ -41,6 +41,7 @@ public class ReportService {
 
     private MealByDateMap mapTool; 
 
+    @Autowired
     private DateTools dateTools;
 
     public ReportDto.getWeekReportResponce weekReport(HttpServletRequest httpRequest) throws JsonMappingException, JsonProcessingException {

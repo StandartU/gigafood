@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -128,6 +129,7 @@ public class DishService {
         );
     }
 
+    @Transactional(readOnly = true)
     public List<Meal> all(HttpServletRequest httpRequest) {
         return mealRepository.findAllByUser(tokenService.getUserByRequest(httpRequest));
     }

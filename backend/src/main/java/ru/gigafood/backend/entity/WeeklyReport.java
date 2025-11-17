@@ -42,8 +42,7 @@ public class WeeklyReport {
     @Min(0)
     private Integer totalCalories;
 
-    @Lob
-    @Column(name = "recomendations")
+    @Column(name = "recomendations", columnDefinition = "TEXT")
     private String recomendations;
     
     @ManyToOne(fetch = FetchType.LAZY)

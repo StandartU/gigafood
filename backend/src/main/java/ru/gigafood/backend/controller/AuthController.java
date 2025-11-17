@@ -24,7 +24,7 @@ public class AuthController {
     private AuthService authService;
 
     @PostMapping("/signup")
-	public ResponseEntity<AuthDto.SingupResponse> singup(@RequestBody AuthDto.SingupRequest request) {
+    public ResponseEntity<AuthDto.SingupResponse> singup(@RequestBody AuthDto.SingupRequest request) {
         AuthDto.SingupResponse response = authService.signup(request);
         return ResponseEntity
             .status(HttpStatus.CREATED)

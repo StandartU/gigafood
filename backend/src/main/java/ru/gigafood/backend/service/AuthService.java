@@ -16,7 +16,11 @@ import ru.gigafood.backend.dto.AuthDto;
 import ru.gigafood.backend.entity.CustomUsrDetails;
 import ru.gigafood.backend.entity.Role;
 import ru.gigafood.backend.entity.User;
+import ru.gigafood.backend.entity.UserProfile;
+import ru.gigafood.backend.entity.enums.Gender;
+import ru.gigafood.backend.entity.enums.GoalType;
 import ru.gigafood.backend.repository.RoleRepository;
+import ru.gigafood.backend.repository.UserProfileRepository;
 import ru.gigafood.backend.repository.UserRepository;
 
 @Service
@@ -32,6 +36,9 @@ public class AuthService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private UserProfileRepository userProfileRepository;
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
@@ -78,8 +85,20 @@ public class AuthService {
                 .orElseThrow(() -> new RuntimeException("Role not found"));
 
         user.setRoles(Set.of(userRole));
-        userRepository.save(user);
 
+        UserProfile userProfile = new UserProfile();
+        userProfile.setAge(12);
+        userProfile.setDailyCalorieLimit(1200);
+        userProfile.setAutoCalcCalloriesLimit(false);
+        userProfile.setGender(Gender.MALE);
+        userProfile.setGoalType(GoalType.INCREASE_STR);
+        userProfile.setHeight(160);
+        userProfile.setWeight(58);
+    
+        userProfile.setUser(user);
+        user.setUserProfile(userProfile);
+    
+        userRepository.save(user);
 
         return new AuthDto.SingupResponse(
                 "User registered successfully"

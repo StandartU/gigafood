@@ -3,8 +3,10 @@ package ru.gigafood.backend.service;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Year;
@@ -53,7 +55,18 @@ public class PhotoService {
 
     String fileName =
         "attach_" + curDate + "_" + file.getOriginalFilename().toLowerCase().replaceAll(" ", "-");
-    file.transferTo(new File(uploadDir + "/" + fileName));
+
+    File dest = new File(uploadDir, fileName);
+
+    System.out.println("Upload directory exists: " + uploadDir.exists());
+    System.out.println("Upload directory absolute path: " + uploadDir.getAbsolutePath());
+    System.out.println("Destination file path: " + dest.getAbsolutePath());
+    System.out.println("Destination parent exists: " + dest.getParentFile().exists());
+    System.out.println("File size: " + file.getSize());
+
+    Path destPath = Paths.get(uploadDir.getAbsolutePath(), fileName);
+    Files.copy(file.getInputStream(), destPath, StandardCopyOption.REPLACE_EXISTING);
+
     Photo attachment = Photo.builder()
         .attachTitle(fileName)
         .uploadDate(LocalDate.now())

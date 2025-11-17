@@ -51,8 +51,7 @@ public class Meal {
     @Min(0)
     private Integer caloriesEstimated;
 
-    @Column(name = "manual_correction")
-    @Lob
+    @Column(name = "manual_correction", columnDefinition = "TEXT")
     private String manualCorrection;
 
     @Column(name = "fats_etimated")
