@@ -69,6 +69,9 @@ function recognizeFood() {
     });
 }
 
+// Переменная для хранения текущего элемента еды
+let currentFoodItem = null;
+
 function addFoodToTape(food, imageUrl = null) {
     const tape = document.getElementById('foodTape');
     const card = document.getElementById('foodTapeCard');
@@ -86,6 +89,12 @@ function addFoodToTape(food, imageUrl = null) {
     const item = document.createElement('div');
     item.className = 'food-item';
     item.dataset.food = JSON.stringify(food);
+    if (imageUrl) {
+        item.dataset.image = imageUrl;
+    }
+    
+    // Генерируем уникальный ID для элемента
+    item.dataset.id = 'food_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 
     // Если нет фото, показываем иконку вместо изображения
     if (!imageUrl) {
@@ -108,28 +117,35 @@ function addFoodToTape(food, imageUrl = null) {
         `;
     }
 
-    item.addEventListener('click', () => openFoodModal(food, imageUrl));
+    item.addEventListener('click', () => openFoodModal(food, imageUrl, item));
     tape.appendChild(item);
     tape.scrollLeft = tape.scrollWidth;
 }
 
-function openFoodModal(food, imageUrl = null) {
+function openFoodModal(food, imageUrl = null, foodItem = null) {
     const modal = document.getElementById('foodModal');
     const title = document.getElementById('modalTitle');
     const image = document.getElementById('modalImage');
+    const icon = document.getElementById('modalIcon');
+    const imageContainer = document.getElementById('modalImageContainer');
     const calories = document.getElementById('modalCalories');
     const protein = document.getElementById('modalProtein');
     const fat = document.getElementById('modalFat');
     const carbs = document.getElementById('modalCarbs');
 
+    // Сохраняем ссылку на текущий элемент
+    currentFoodItem = foodItem;
+
     title.textContent = food.name;
     
-    // Если нет фото, показываем placeholder в модальном окне
+    // Если есть фото, показываем его, иначе - иконку
     if (imageUrl) {
         image.src = imageUrl;
         image.style.display = 'block';
+        icon.style.display = 'none';
     } else {
         image.style.display = 'none';
+        icon.style.display = 'flex';
     }
     
     calories.textContent = food.calories;
@@ -156,10 +172,138 @@ function closeFoodModal() {
     setTimeout(() => {
         modal.style.display = 'none';
         document.body.classList.remove('modal-open');
+        currentFoodItem = null;
     }, 300);
 }
 
-// Функции для модального окна ручного ввода (ВЫНЕСЕНЫ ГЛОБАЛЬНО)
+// Функция открытия модального окна редактирования
+function openEditModal() {
+    if (!currentFoodItem) return;
+    
+    const food = JSON.parse(currentFoodItem.dataset.food);
+    const editModal = document.getElementById('editFoodModal');
+    
+    // Заполняем форму данными
+    document.getElementById('editFoodId').value = currentFoodItem.dataset.id;
+    document.getElementById('editFoodName').value = food.name;
+    document.getElementById('editFoodCalories').value = food.calories;
+    document.getElementById('editFoodProtein').value = food.protein || 0;
+    document.getElementById('editFoodFat').value = food.fat || 0;
+    document.getElementById('editFoodCarbs').value = food.carbs || 0;
+    
+    // Закрываем модальное окно просмотра
+    closeFoodModal();
+    
+    // Открываем модальное окно редактирования
+    document.body.classList.add('modal-open');
+    editModal.style.display = 'flex';
+    
+    requestAnimationFrame(() => {
+        editModal.classList.add('visible');
+        editModal.querySelector('.modal-content').classList.add('visible');
+    });
+}
+
+// Функция закрытия модального окна редактирования
+window.closeEditModal = function() {
+    const modal = document.getElementById('editFoodModal');
+    const modalContent = modal.querySelector('.modal-content');
+    
+    modal.classList.remove('visible');
+    modalContent.classList.remove('visible');
+    
+    setTimeout(() => {
+        modal.style.display = 'none';
+        document.body.classList.remove('modal-open');
+    }, 300);
+}
+
+// Функция удаления текущего блюда
+window.deleteCurrentFood = function() {
+    if (!confirm('Вы уверены, что хотите удалить это блюдо?')) {
+        return;
+    }
+    
+    const foodId = document.getElementById('editFoodId').value;
+    const foodItem = document.querySelector(`[data-id="${foodId}"]`);
+    
+    if (foodItem) {
+        const food = JSON.parse(foodItem.dataset.food);
+        
+        // Обновляем счётчик калорий (вычитаем)
+        updateConsumedCalories(-food.calories);
+        
+        // Удаляем элемент
+        foodItem.remove();
+        
+        // Проверяем, остались ли элементы в ленте
+        const tape = document.getElementById('foodTape');
+        if (tape.children.length === 0) {
+            tape.innerHTML = `
+                <div class="empty-state">
+                    <p>Пока ничего не добавлено</p>
+                    <p>Загрузите фото еды, чтобы начать</p>
+                </div>
+            `;
+            const card = document.getElementById('foodTapeCard');
+            const container = card.querySelector('.food-tape-container');
+            container.classList.remove('visible');
+            setTimeout(() => {
+                card.style.display = 'none';
+            }, 300);
+        }
+    }
+    
+    closeEditModal();
+}
+
+// Обработка отправки формы редактирования
+function handleEditFoodSubmit(e) {
+    e.preventDefault();
+    
+    const foodId = document.getElementById('editFoodId').value;
+    const foodItem = document.querySelector(`[data-id="${foodId}"]`);
+    
+    if (!foodItem) return;
+    
+    const oldFood = JSON.parse(foodItem.dataset.food);
+    
+    const name = document.getElementById('editFoodName').value.trim();
+    const calories = parseInt(document.getElementById('editFoodCalories').value);
+    const protein = parseInt(document.getElementById('editFoodProtein').value) || 0;
+    const fat = parseInt(document.getElementById('editFoodFat').value) || 0;
+    const carbs = parseInt(document.getElementById('editFoodCarbs').value) || 0;
+    
+    if (!name || isNaN(calories)) {
+        alert('Пожалуйста, заполните название блюда и калории');
+        return;
+    }
+    
+    const updatedFood = {
+        name,
+        calories,
+        protein,
+        fat,
+        carbs
+    };
+    
+    // Обновляем данные в элементе
+    foodItem.dataset.food = JSON.stringify(updatedFood);
+    
+    // Обновляем отображение в ленте
+    const nameEl = foodItem.querySelector('.food-name');
+    const caloriesEl = foodItem.querySelector('.food-calories');
+    if (nameEl) nameEl.textContent = name;
+    if (caloriesEl) caloriesEl.textContent = `${calories} ккал`;
+    
+    // Обновляем счётчик калорий (разница между старым и новым значением)
+    const calorieDiff = calories - oldFood.calories;
+    updateConsumedCalories(calorieDiff);
+    
+    closeEditModal();
+}
+
+// Функции для модального окна ручного ввода
 function openManualInputModal() {
     const modal = document.getElementById('manualInputModal');
     const form = document.getElementById('manualFoodForm');
@@ -176,7 +320,7 @@ function openManualInputModal() {
     });
 }
 
-function closeManualInputModal() {
+window.closeManualInputModal = function() {
     const modal = document.getElementById('manualInputModal');
     const modalContent = modal.querySelector('.modal-content');
     
@@ -227,7 +371,7 @@ function updateConsumedCalories(additional) {
 
     let currentText = consumedEl.textContent;
     let currentConsumed = parseInt(currentText.match(/\d+/)?.[0] || '0', 10);
-    const newConsumed = currentConsumed + additional;
+    const newConsumed = Math.max(0, currentConsumed + additional);
 
     consumedEl.textContent = `Потреблено: ${newConsumed} ккал`;
 
@@ -359,10 +503,16 @@ document.addEventListener('DOMContentLoaded', function() {
         manualBtn.addEventListener('click', openManualInputModal);
     }
 
-    // Обработка отправки формы
+    // Обработка отправки формы ручного ввода
     const manualForm = document.getElementById('manualFoodForm');
     if (manualForm) {
         manualForm.addEventListener('submit', handleManualFoodSubmit);
+    }
+
+    // Обработка отправки формы редактирования
+    const editForm = document.getElementById('editFoodForm');
+    if (editForm) {
+        editForm.addEventListener('submit', handleEditFoodSubmit);
     }
 
     // Обработка загрузки фото
@@ -412,18 +562,81 @@ document.addEventListener('DOMContentLoaded', function() {
         e.stopPropagation();
     });
 
+    // Добавляем обработчики для кнопок редактирования и удаления в модальном окне просмотра
+    const editBtn = document.createElement('button');
+    editBtn.className = 'btn btn-primary';
+    editBtn.textContent = 'Редактировать';
+    editBtn.style.marginRight = '8px';
+    editBtn.addEventListener('click', openEditModal);
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'btn btn-danger';
+    deleteBtn.textContent = 'Удалить';
+    deleteBtn.addEventListener('click', function() {
+        if (!currentFoodItem) return;
+        
+        if (!confirm('Вы уверены, что хотите удалить это блюдо?')) {
+            return;
+        }
+        
+        const food = JSON.parse(currentFoodItem.dataset.food);
+        updateConsumedCalories(-food.calories);
+        currentFoodItem.remove();
+        
+        // Проверяем, остались ли элементы в ленте
+        const tape = document.getElementById('foodTape');
+        if (tape.children.length === 0) {
+            tape.innerHTML = `
+                <div class="empty-state">
+                    <p>Пока ничего не добавлено</p>
+                    <p>Загрузите фото еды, чтобы начать</p>
+                </div>
+            `;
+            const card = document.getElementById('foodTapeCard');
+            const container = card.querySelector('.food-tape-container');
+            container.classList.remove('visible');
+            setTimeout(() => {
+                card.style.display = 'none';
+            }, 300);
+        }
+        
+        closeFoodModal();
+    });
+
+    const modalBody = foodModal.querySelector('.modal-body');
+    const actionButtons = document.createElement('div');
+    actionButtons.className = 'modal-actions';
+    actionButtons.style.marginTop = '20px';
+    actionButtons.style.display = 'flex';
+    actionButtons.style.gap = '8px';
+    actionButtons.style.justifyContent = 'center';
+    actionButtons.appendChild(editBtn);
+    actionButtons.appendChild(deleteBtn);
+    modalBody.appendChild(actionButtons);
+
     // Закрытие модального окна ручного ввода
     const manualModal = document.getElementById('manualInputModal');
     const manualModalContent = manualModal.querySelector('.modal-content');
-    const manualCloseBtn = manualModal.querySelector('.modal-close');
 
-    manualCloseBtn.addEventListener('click', closeManualInputModal);
     manualModal.addEventListener('click', function(e) {
         if (e.target === manualModal) {
             closeManualInputModal();
         }
     });
     manualModalContent.addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+
+    // Закрытие модального окна редактирования
+    const editModal = document.getElementById('editFoodModal');
+    const editModalContent = editModal.querySelector('.modal-content');
+
+    editModal.addEventListener('click', function(e) {
+        if (e.target === editModal) {
+            closeEditModal();
+        }
+    });
+    editModalContent.addEventListener('click', function(e) {
         e.stopPropagation();
     });
 
@@ -435,6 +648,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             if (manualModal.style.display === 'flex') {
                 closeManualInputModal();
+            }
+            if (editModal.style.display === 'flex') {
+                closeEditModal();
             }
         }
     });
