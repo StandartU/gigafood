@@ -48,6 +48,8 @@ public class DishService {
 
         User user = tokenService.getUserByRequest(httpRequest);
 
+        Photo photo = photoService.addAttachment(dtoRequest.file(), user);
+
         String jsonResponse = aiWebClientService.classifyFood(dtoRequest.file());
 
         ObjectMapper objectMapper = new ObjectMapper();
@@ -59,8 +61,6 @@ public class DishService {
         Integer proteinEstimated = node.path("protein").isInt() ? node.path("fat").asInt() : null;
         Integer fatsEstimated = node.path("fat").isInt() ? node.path("fat").asInt() : null;
         Integer carbsEstimated = node.path("carbs").isInt() ? node.path("carbs").asInt() : null;
-
-        Photo photo = photoService.addAttachment(dtoRequest.file(), user);
 
         Integer dailyCalorieLimit = user.getUserProfile().getDailyCalorieLimit();
 
