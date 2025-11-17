@@ -7,6 +7,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,6 +20,7 @@ import ru.gigafood.backend.entity.Meal;
 import ru.gigafood.backend.service.DishService;
 
 @RestController
+@CrossOrigin(origins = "*") 
 @RequestMapping(value = "/gigafood/api/v1/dish", produces = {"application/json"})
 public class DishController {
     @Autowired
