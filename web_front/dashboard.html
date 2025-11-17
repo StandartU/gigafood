@@ -3,59 +3,149 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GigaFood - Дашборд</title>
+    <title>GigaFood - Главная</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
+
         <header class="header">
-            <h1 class="welcome-title">Добро пожаловать</h1>
+            <h1 class="welcome-title" id="welcomeUser">Добро пожаловать</h1>
             <div class="header-actions">
                 <button class="btn btn-menu" onclick="window.location.href='menu.html'">☰</button>
                 <button class="btn btn-logout" onclick="logout()">Выйти</button>
             </div>
         </header>
-        
+
         <main class="main">
             <div class="dashboard-content">
-                <!-- Цель по калориям -->
+
+                <!-- Статистика за неделю -->
+                <div class="card">
+                    <h3 class="card-title">Статистика за неделю</h3>
+                    <div class="chart-container">
+                        <canvas id="weeklyChart"></canvas>
+                    </div>
+                </div>
+
                 <div class="card">
                     <h3 class="card-title">Цель по калориям</h3>
                     <div class="calorie-goal">
-                        <span class="goal-number">2000 ккал</span>
-                        <p class="consumed">Потреблено: 1200 ккал</p>
+                        <span class="goal-number" id="calorieGoal"></span>
+                        <p class="consumed" id="calorieConsumed"></p>
                         <div class="progress-bar">
-                            <div class="progress-fill" style="width: 60%"></div>
+                            <div class="progress-fill" id="progressFill"></div>
                         </div>
                     </div>
                 </div>
-                
-                <!-- Кнопки действий -->
+
+                <div id="foodTapeCard" class="card" style="display: none; margin-top: 16px;">
+                    <div class="food-tape-container">
+                        <h3 class="card-title">Съедено сегодня</h3>
+                        <div id="foodTape" class="food-tape">
+                            <div class="empty-state">
+                                <p>Пока ничего не добавлено</p>
+                                <p>Загрузите фото еды, чтобы начать</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="action-buttons">
                     <button class="btn btn-camera">
-                        <span class="btn-icon">📷</span>
-                        Загрузить фото еды
+                        <span class="btn-text">Загрузить фото еды</span>
                     </button>
+
                     <button class="btn btn-manual">
-                        Ввести вручную
-                    </button>
-                </div>
-                
-                <!-- Рекомендации -->
-                <div class="card">
-                    <h3 class="card-title">Рекомендации</h3>
-                    <ul class="recommendations-list">
-                        <li>Увеличьте потребление белка до 100 г в день.</li>
-                        <li>Сократите потребление сахара на 20%.</li>
-                    </ul>
-                    <button class="btn btn-secondary" onclick="window.location.href='recommendations.html'">
-                        Подробнее
+                        <span class="btn-text">Ввести вручную</span>
                     </button>
                 </div>
             </div>
         </main>
     </div>
-    
-    <script src="script.js"></script>
+
+        <!-- Модальное окно -->
+    <div id="foodModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Название блюда</h3>
+                <button class="modal-close" aria-label="Закрыть">×</button>
+            </div>
+            <div class="modal-body">
+                <div id="modalImageContainer">
+                    <img id="modalImage" src="" alt="Еда" class="modal-image" style="display: none;">
+                    <div id="modalIcon" class="modal-icon" style="display: none;">
+                        <span>🍽️</span>
+                    </div>
+                </div>
+                <div class="nutrients-grid">
+                    <div class="nutrient">
+                        <span class="nutrient-icon">Калории</span>
+                        <strong id="modalCalories">0</strong> ккал
+                    </div>
+                    <div class="nutrient">
+                        <span class="nutrient-icon">Белки</span>
+                        <strong id="modalProtein">0</strong> г
+                    </div>
+                    <div class="nutrient">
+                        <span class="nutrient-icon">Жиры</span>
+                        <strong id="modalFat">0</strong> г
+                    </div>
+                    <div class="nutrient">
+                        <span class="nutrient-icon">Углеводы</span>
+                        <strong id="modalCarbs">0</strong> г
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        <!-- Модальное окно для ручного ввода -->
+    <div id="manualInputModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Добавить блюдо</h3>
+                <button class="modal-close" onclick="closeManualInputModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="manualFoodForm" class="food-form">
+                    <div class="form-group">
+                        <label for="foodName">Название блюда</label>
+                        <input type="text" id="foodName" placeholder="Например: Омлет с овощами" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="foodCalories">Калории (ккал)</label>
+                        <input type="number" id="foodCalories" placeholder="0" min="0" required>
+                    </div>
+                    
+                    <div class="nutrients-grid">
+                        <div class="form-group">
+                            <label for="foodProtein">Белки (г)</label>
+                            <input type="number" id="foodProtein" placeholder="0" min="0" value="0">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="foodFat">Жиры (г)</label>
+                            <input type="number" id="foodFat" placeholder="0" min="0" value="0">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="foodCarbs">Углеводы (г)</label>
+                            <input type="number" id="foodCarbs" placeholder="0" min="0" value="0">
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Добавить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="module" src="js/storage.js"></script>
+    <script type="module" src="js/dashboard.js"></script>
 </body>
 </html>
