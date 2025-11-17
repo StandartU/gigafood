@@ -12,7 +12,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.servlet.http.HttpServletRequest;
 import ru.gigafood.backend.dto.DishDto;
@@ -27,7 +29,8 @@ public class DishController {
     private DishService dishService;
 
     @PostMapping("/analyze")
-	public ResponseEntity<DishDto.analyzeResponse> analyze(@RequestBody DishDto.analyzeRequest dtoRequest, HttpServletRequest httpRequest) throws Exception {
+	public ResponseEntity<DishDto.analyzeResponse> analyze(@RequestParam("file") MultipartFile file, HttpServletRequest httpRequest) throws Exception {
+        DishDto.analyzeRequest dtoRequest = new DishDto.analyzeRequest(file);
         DishDto.analyzeResponse response = dishService.analyze(dtoRequest, httpRequest);
         return ResponseEntity
             .status(HttpStatus.OK)
