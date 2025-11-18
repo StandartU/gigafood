@@ -48,7 +48,7 @@ public class ReportService {
     public ReportDto.getWeekReportResponce weekReport(HttpServletRequest httpRequest) throws JsonMappingException, JsonProcessingException {
         User user = tokenService.getUserByRequest(httpRequest);
 
-        Map<LocalDate, Integer> dateCaloriesMap = mapTool.getMapOfMeals(mealRepository.findWeeklyCaloriesByUser(user.getId()));
+        Map<LocalDate, Integer> dateCaloriesMap = mapTool.getMapOfMeals(mealRepository.findWeeklyCaloriesByUser(user));
 
         WeeklyReport nowReport = updateReport(user);
 
@@ -64,7 +64,7 @@ public class ReportService {
 
         ObjectMapper mapper = new ObjectMapper();
 
-        List<Meal> foodList = mealRepository.findMealsForCurrentWeek(user.getId());
+        List<Meal> foodList = mealRepository.findMealsForCurrentWeek(user);
 
         System.out.println("[MEAL DEBUG] result size=" + foodList.size());
 
