@@ -21,9 +21,9 @@ function getWeeklyData() {
 async function recognizeFood(file) {
     await new Promise(res => setTimeout(res, 800));
 
-    const response = await DishService.analyze(file, {Authorization: getTokens()?.access});
+    const response = await DishService.analyze(file, { Authorization: getTokens()?.access });
 
-    return {
+    return {    
         name: response.foodName,
         calories: response.caloriesEstimated || 0,
         protein: response.proteinEstimated || 0,
