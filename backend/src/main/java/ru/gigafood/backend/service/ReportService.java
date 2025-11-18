@@ -39,6 +39,7 @@ public class ReportService {
     @Autowired
     private WeeklyReportRepository weeklyReportRepository;
 
+    @Autowired
     private MealByDateMap mapTool; 
 
     @Autowired
