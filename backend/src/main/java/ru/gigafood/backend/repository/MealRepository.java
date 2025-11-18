@@ -60,12 +60,12 @@ public interface MealRepository extends JpaRepository<Meal, Long> {
         AND m.mealTime < DATE_TRUNC('week', CURRENT_DATE) + INTERVAL '7 day'
         GROUP BY day
         ORDER BY day
-    """, nativeQuery = true)
+    """)
     List<Object[]> findWeeklyCaloriesByUser(@Param("user") User user);
 
     // Исправленный метод для текущей недели
     @Query(value = """
-        SELECT *
+        SELECT Meal
         FROM Meal m
         WHERE m.user = :user
           AND m.mealTime >= DATE_TRUNC('week', CURRENT_TIMESTAMP)
