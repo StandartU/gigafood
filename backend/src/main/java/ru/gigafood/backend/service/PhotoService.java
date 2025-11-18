@@ -51,7 +51,7 @@ public class PhotoService {
     if (!uploadDir.exists()) {
       uploadDir.mkdirs();
     }
-    String curDate = LocalDateTime.now().toString();
+    String curDate = LocalDateTime.now().toString().replace(":", "-");;
 
     String fileName =
         "attach_" + curDate + "_" + file.getOriginalFilename().toLowerCase().replaceAll(" ", "-");
