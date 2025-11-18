@@ -1,22 +1,50 @@
 import { getTokens, getUserData, saveUserData } from './storage.js';
 import { DishService } from './api/services/dishS.js'
+import { ReportService } from './api/services/reportS.js'
+import { UserService } from './api/services/userS.js'
 
 // Данные за неделю
-function getWeeklyData() {
+// function getWeeklyData() {
+//     const days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+//     const userData = getUserData();
+//     const goal = userData ? userData.calorieLimit : 2000;
+
+//     return {
+//         labels: days,
+//         datasets: days.map((day, index) => {
+//             const base = goal - 300;
+//             const variation = Math.floor(Math.random() * 600);
+//             const consumed = Math.max(500, Math.min(goal + 200, base + variation));
+//             return { day, consumed, goal };
+//         })
+//     };
+// }
+
+async function getWeeklyData() {
     const days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
-    const userData = getUserData();
-    const goal = userData ? userData.calorieLimit : 2000;
+
+    const responce = await UserService.getUserData({ Authorization: getTokens()?.access });
+    const responceReport = await ReportService.weekReport({ Authorization: getTokens()?.access });
+
+    const goal = responce ? responce.user.dailyCalorieLimit : 2000;
+
+    // Если dayCalories пустой — делаем затычку
+    const dayCalories = responceReport.dayCalories;
+    const caloriesArray = (dayCalories && Object.keys(dayCalories).length > 0)
+        ? Object.values(dayCalories)
+        : [1800, 2000, 1900, 2100, 2000, 2200, 2000]; // фиксированные значения-затычка
+
+    const datasets = days.map((day, index) => {
+        const consumed = caloriesArray[index] ?? 100; // если нет данных, подставляем минимальное
+        return { day, consumed, goal };
+    });
 
     return {
         labels: days,
-        datasets: days.map((day, index) => {
-            const base = goal - 300;
-            const variation = Math.floor(Math.random() * 600);
-            const consumed = Math.max(500, Math.min(goal + 200, base + variation));
-            return { day, consumed, goal };
-        })
+        datasets
     };
 }
+
 
 async function recognizeFood(file) {
     await new Promise(res => setTimeout(res, 800));
@@ -38,7 +66,7 @@ let currentFoodItem = null;
 function addFoodToTape(food, imageUrl = null) {
     const tape = document.getElementById('foodTape');
     const card = document.getElementById('foodTapeCard');
-    const container = card.qimageUrluerySelector('.food-tape-container');
+    const container = card.querySelector('.food-tape-container');
     const empty = tape.querySelector('.empty-state');
 
     // Показываем карточку и убираем пустое состояние
@@ -344,13 +372,13 @@ function updateConsumedCalories(additional) {
 
 // Инициализация графика
 let chartInstance = null;
-function initChart() {
+async function initChart() {
     const ctx = document.getElementById('weeklyChart');
     if (!ctx) return;
 
     if (chartInstance) chartInstance.destroy();
 
-    const weeklyData = getWeeklyData();
+    const weeklyData = await getWeeklyData();
     const todayIndex = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1;
 
     chartInstance = new Chart(ctx, {
@@ -417,17 +445,21 @@ function initChart() {
         const meta = chartInstance.getDatasetMeta(0);
         meta.data[todayIndex].pointBackgroundColor = '#ff9800';
         meta.data[todayIndex].pointBorderColor = '#fff';
-        chartInstance.update('none');
+        chartInstance.update('none');   
     }, 100);
 }
 
 // Обновление дашборда
-function updateDashboard() {
+async function updateDashboard() {
     const userData = getUserData();
     const welcomeElement = document.getElementById('welcomeUser');
     const calorieGoalElement = document.getElementById('calorieGoal');
 
     if (userData) {
+
+        const responce = await UserService.getUserData({ Authorization: getTokens()?.access });
+        const responceReport = await ReportService.weekReport({ Authorization: getTokens()?.access });3
+
         const name = userData.fullName || 'Пользователь';
         const firstName = name.split(' ')[0];
         welcomeElement.textContent = `Добро пожаловать, ${firstName}!`;
@@ -444,8 +476,23 @@ function updateDashboard() {
 }
 
 // Инициализация
-document.addEventListener('DOMContentLoaded', function() {
-    updateDashboard();
+document.addEventListener('DOMContentLoaded', async function() {
+    await updateDashboard();
+
+    const responceDishes = await DishService.getAllDishes({ Authorization: getTokens()?.access });
+
+    if (Array.isArray(responceDishes)) {
+        responceDishes.forEach(dish => {
+            updateConsumedCalories(dish.caloriesEstimated);
+            addFoodToTape({
+                name: dish.foodName,
+                calories: dish.caloriesEstimated,
+                protein: dish.proteinEstimated,
+                fat: dish.fatsEstimated,
+                carbs: dish.carbsEstimated
+            }, null)
+        });
+    }
 
     // Скрытый input для загрузки фото
     const fileInput = document.createElement('input');
@@ -480,6 +527,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Обработка загрузки фото
     fileInput.addEventListener('change', async (e) => {
+        e.preventDefault();
         const file = e.target.files[0];
         if (!file) return;
 

@@ -1,5 +1,6 @@
 import { ReportService } from './api/services/reportS.js'
 import { getTokens } from './storage.js';
+import { UserService } from './api/services/userS.js'
 
 document.addEventListener('DOMContentLoaded', async () => {
     await loadWeekReport();
@@ -9,6 +10,7 @@ async function loadWeekReport() {
     try {
         const headers = { Authorization: getTokens()?.access };
         const response = await ReportService.weekReport(headers);
+        const responceUser = await UserService.getUserData(headers);
 
         if (!response || !response.report) {
             console.warn('Нет данных для отчета');
@@ -20,18 +22,23 @@ async function loadWeekReport() {
 
         // Обновляем статистику
         const statsGrid = document.querySelector('.stats-grid');
+
+        const totalCalories = report.totalCalories || 0;
+        const dailyLimit = responceUser.user.dailyCalorieLimit || 1; // защита от деления на 0
+        const completionPercent = Math.round((totalCalories / (dailyLimit * 7)) * 100);
+
         if (statsGrid) {
             statsGrid.innerHTML = `
                 <div class="stat-item">
-                    <span class="stat-value">${report.totalCalories}</span>
+                    <span class="stat-value">${totalCalories}</span>
                     <span class="stat-label">ккал потреблено</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-value">---</span>
+                    <span class="stat-value">${dailyLimit * 7}</span>
                     <span class="stat-label">ккал цель</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-value">---</span>
+                    <span class="stat-value">${completionPercent} %</span>
                     <span class="stat-label">выполнение цели</span>
                 </div>
             `;
