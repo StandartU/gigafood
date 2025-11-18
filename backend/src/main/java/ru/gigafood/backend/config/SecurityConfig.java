@@ -84,8 +84,6 @@ public class SecurityConfig implements WebMvcConfigurer {
             .csrf(csrf -> csrf.disable())
 			.authorizeHttpRequests((authorize) -> authorize
 				.requestMatchers("/gigafood/api/v1/auth/**").permitAll()
-				.requestMatchers("/gigafood/api/v1/admin").hasAuthority("SCOPE_adm")
-				.requestMatchers("/gigafood/api/v1/user").hasAuthority("SCOPE_usr")
 				.requestMatchers(
 					"/swagger-ui/**",
 					"/swagger-ui.html",
