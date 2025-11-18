@@ -54,23 +54,23 @@ public interface MealRepository extends JpaRepository<Meal, Long> {
     @Query(value = """
         SELECT DATE_TRUNC('day', m.meal_time) AS day,
                COALESCE(SUM(m.calories_etimated), 0) AS total_calories
-        FROM Meal m
-        WHERE m.user = :user
-        AND m.mealTime >= DATE_TRUNC('week', CURRENT_DATE)
-        AND m.mealTime < DATE_TRUNC('week', CURRENT_DATE) + INTERVAL '7 day'
+        FROM meals m
+        WHERE m.user_id = :userId
+        AND m.meal_time >= DATE_TRUNC('week', CURRENT_DATE)
+        AND m.meal_time < DATE_TRUNC('week', CURRENT_DATE) + INTERVAL '7 day'
         GROUP BY day
         ORDER BY day
-    """)
-    List<Object[]> findWeeklyCaloriesByUser(@Param("user") User user);
+    """, nativeQuery = true)
+    List<Object[]> findWeeklyCaloriesByUser(@Param("userId") Long userId);
 
     // Исправленный метод для текущей недели
     @Query(value = """
-        SELECT Meal
-        FROM Meal m
-        WHERE m.user = :user
-          AND m.mealTime >= DATE_TRUNC('week', CURRENT_TIMESTAMP)
-          AND m.mealTime <  DATE_TRUNC('week', CURRENT_TIMESTAMP) + INTERVAL '7 day'
+        SELECT *
+        FROM meals m
+        WHERE m.user_id = :userId
+        AND m.meal_time >= DATE_TRUNC('week', CURRENT_DATE)
+        AND m.meal_time < DATE_TRUNC('week', CURRENT_DATE) + INTERVAL '7 day'
         ORDER BY m.meal_time
     """, nativeQuery = true)
-    List<Meal> findMealsForCurrentWeek(@Param("user") User user);
+    List<Meal> findMealsForCurrentWeek(@Param("userId") Long userId);
 }
