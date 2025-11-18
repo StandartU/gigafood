@@ -20,30 +20,30 @@ import { UserService } from './api/services/userS.js'
 //     };
 // }
 
-async function getWeeklyData() {
-    const days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+// async function getWeeklyData() {
+//     const days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 
-    const responce = await UserService.getUserData({ Authorization: getTokens()?.access });
-    const responceReport = await ReportService.weekReport({ Authorization: getTokens()?.access });
+//     const responce = await UserService.getUserData({ Authorization: getTokens()?.access });
+//     const responceReport = await ReportService.weekReport({ Authorization: getTokens()?.access });
 
-    const goal = responce ? responce.user.dailyCalorieLimit : 2000;
+//     const goal = responce ? responce.user.dailyCalorieLimit : 2000;
 
-    // Если dayCalories пустой — делаем затычку
-    const dayCalories = responceReport.dayCalories;
-    const caloriesArray = (dayCalories && Object.keys(dayCalories).length > 0)
-        ? Object.values(dayCalories)
-        : [1800, 2000, 1900, 2100, 2000, 2200, 2000]; // фиксированные значения-затычка
+//     // Если dayCalories пустой — делаем затычку
+//     const dayCalories = responceReport.dayCalories;
+//     const caloriesArray = (dayCalories && Object.keys(dayCalories).length > 0)
+//         ? Object.values(dayCalories)
+//         : [1800, 2000, 1900, 2100, 2000, 2200, 2000]; // фиксированные значения-затычка
 
-    const datasets = days.map((day, index) => {
-        const consumed = caloriesArray[index] ?? 100; // если нет данных, подставляем минимальное
-        return { day, consumed, goal };
-    });
+//     const datasets = days.map((day, index) => {
+//         const consumed = caloriesArray[index] ?? 100; // если нет данных, подставляем минимальное
+//         return { day, consumed, goal };
+//     });
 
-    return {
-        labels: days,
-        datasets
-    };
-}
+//     return {
+//         labels: days,
+//         datasets
+//     };
+// }
 
 
 async function recognizeFood(file) {
