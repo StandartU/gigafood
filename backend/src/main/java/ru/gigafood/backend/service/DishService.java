@@ -131,7 +131,15 @@ public class DishService {
 
     @Transactional(readOnly = true)
     public List<Meal> all(HttpServletRequest httpRequest) {
-        return mealRepository.findAllByUser(tokenService.getUserByRequest(httpRequest));
+        List<Meal> meals = mealRepository.findAllByUser(tokenService.getUserByRequest(httpRequest));
+        meals.forEach(meal -> {
+            System.out.println(
+            "[MEALserv DEBUG] Meal{id=" + meal.getId() +
+            ", name=" + meal.getFoodName() +
+            ", calls=" + meal.getCaloriesEstimated() +
+            "}");
+        });
+        return meals;
     }
 
     public Resource getPhoto(String photoUrl, HttpServletRequest httpRequest) throws MalformedURLException {

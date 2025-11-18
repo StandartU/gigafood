@@ -66,6 +66,17 @@ public class ReportService {
 
         List<Meal> foodList = mealRepository.findMealsForCurrentWeek(user.getId());
 
+        System.out.println("[MEAL DEBUG] result size=" + foodList.size());
+
+        foodList.forEach(meal -> {
+            System.out.println(
+                "[MEAL DEBUG] Meal{id=" + meal.getId() +
+                ", name=" + meal.getFoodName() +
+                ", calls=" + meal.getCaloriesEstimated() +
+                "}"
+            );
+        });
+
         String foodListJson = mapper
             .writerWithDefaultPrettyPrinter()
             .writeValueAsString(foodList);
