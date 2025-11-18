@@ -68,8 +68,8 @@ public interface MealRepository extends JpaRepository<Meal, Long> {
         SELECT *
         FROM meals m
         WHERE m.user_id = :userId
-        AND m.meal_time >= DATE_TRUNC('week', CURRENT_DATE)
-        AND m.meal_time < DATE_TRUNC('week', CURRENT_DATE) + INTERVAL '7 day'
+          AND m.meal_time >= DATE_TRUNC('week', CURRENT_TIMESTAMP)
+          AND m.meal_time <  DATE_TRUNC('week', CURRENT_TIMESTAMP) + INTERVAL '7 day'
         ORDER BY m.meal_time
     """, nativeQuery = true)
     List<Meal> findMealsForCurrentWeek(@Param("userId") Long userId);
