@@ -82,6 +82,7 @@ public class SecurityConfig implements WebMvcConfigurer {
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		return http
             .csrf(csrf -> csrf.disable())
+			.cors(Customizer.withDefaults())
 			.authorizeHttpRequests((authorize) -> authorize
 				.requestMatchers("/gigafood/api/v1/auth/**").permitAll()
 				.requestMatchers(
