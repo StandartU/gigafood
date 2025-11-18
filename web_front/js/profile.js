@@ -1,7 +1,7 @@
 import { saveUserData, getUserData, getTokens } from './storage.js';
 import { UserService } from './api/services/userS.js'
 
-export function initProfileForm() {
+export async function initProfileForm() {
     const profileForm = document.getElementById('profileForm');
     const profileInfo = document.getElementById('profileInfo');
     const editBtn = document.getElementById('editBtn');
@@ -31,7 +31,7 @@ export function initProfileForm() {
     // Автоматический расчет при изменении параметров
     setupAutoCalculation();
     
-    profileForm.addEventListener('submit', function(e) {
+    profileForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         
         const fullName = document.getElementById('fullName').value.trim();
@@ -62,19 +62,20 @@ export function initProfileForm() {
         
         // Сохраняем данные профиля
         const profileData = {
-            fullName: fullName,
+            gender: document.getElementById('gender').value.toUpperCase(),
             age: age,
-            gender: document.getElementById('gender').value,
             height: height,
             weight: weight,
-            activity: document.getElementById('activity').value,
-            goal: document.getElementById('goal').value,
-            calorieLimit: parseInt(document.getElementById('calorieLimit').value),
-            autoCalculate: document.getElementById('autoCalculateBtn').dataset.active === 'true',
-            updatedAt: new Date().toISOString()
+            activityLevel: document.getElementById('activity').value.toUpperCase(),
+            goalType: document.getElementById('goal').value.toUpperCase(),
+            dailyCalorieLimit: parseInt(document.getElementById('calorieLimit').value),
+            autoCalcCalloriesLimit: document.getElementById('autoCalculateBtn').dataset.active === 'true'
         };
         
-        saveUserData(profileData);
+        const response = await UserService.redactUser(
+            profileData,
+            { Authorization: getTokens()?.access }
+        );
         
         // Обновляем отображение
         updateProfileDisplay();
@@ -93,25 +94,24 @@ export function initProfileForm() {
 
 // Загрузка данных пользователя в форму
 async function loadUserDataToForm() {
-    const userData = getUserData();
-    if (userData) {
+    if (true) {
 
         const responce = await UserService.getUserData( {Authorization: getTokens()?.access} );
 
-        document.getElementById('fullName').value = userData.fullName || '';
-        document.getElementById('age').value = responce.age;
-        document.getElementById('gender').value = responce.gender;
-        document.getElementById('height').value = responce.height;
-        document.getElementById('weight').value = responce.weight;
-        document.getElementById('activity').value = responce.activityLevel;
-        document.getElementById('goal').value = responce.goalType;
-        document.getElementById('calorieLimit').value = responce.dailyCalorieLimit;
+        document.getElementById('fullName').value = '';
+        document.getElementById('age').value = responce.user.age;
+        document.getElementById('gender').value = responce.user.gender;
+        document.getElementById('height').value = responce.user.height;
+        document.getElementById('weight').value = responce.user.weight;
+        document.getElementById('activity').value = responce.user.activityLevel;
+        document.getElementById('goal').value = responce.user.goalType;
+        document.getElementById('calorieLimit').value = responce.user.dailyCalorieLimit;
         
         // Восстанавливаем состояние авторасчета
-        updateAutoCalculateState(userData.autoCalculate !== false);
+        updateAutoCalculateState(responce.user.autoCalcCalloriesLimit !== false);
         
         // Показываем детали расчета если авторасчет включен
-        if (userData.autoCalculate !== false) {
+        if (responce.user.autoCalcCalloriesLimit !== false) {
             calculateCalories();
         }
     }
@@ -193,8 +193,8 @@ async function calculateCalories() {
         // Корректировка по цели
         const goalMultipliers = {
             'lose': 0.85,
-            'maintain': 1.0,
-            'gain': 1.15
+            'keep_fit': 1.0,
+            'increase_str': 1.15
         };
         
         let calories = Math.round(tdee * goalMultipliers[goal]);
@@ -225,8 +225,8 @@ function showCalculationDetails(bmr, tdee, finalCalories, goal) {
     
     const goalTexts = {
         'lose': 'похудения',
-        'maintain': 'поддержания веса',
-        'gain': 'набора массы'
+        'keep_fit': 'поддержания веса',
+        'increase_str': 'набора массы'
     };
     
     detailsContainer.innerHTML = `
@@ -288,31 +288,29 @@ function initAutoCalculate() {
 
 // Функция обновления отображения профиля
 export async function updateProfileDisplay() {
-    const userData = getUserData();
-
     const responce = await UserService.getUserData( {Authorization: getTokens()?.access} );
 
-    if (userData) {
+    if (true) {
 
-        document.querySelector('.profile-name').textContent = userData.fullName || 'Иван Иванов';
-        document.getElementById('displayAge').textContent = responce.age;
-        document.getElementById('displayGender').textContent = responce.gender === 'female' ? 'Женский' : 'Мужской';
-        document.getElementById('displayHeight').textContent = (responce.height) + ' см';
-        document.getElementById('displayWeight').textContent = (responce.weight) + ' кг';
+        document.querySelector('.profile-name').textContent = 'Name State';
+        document.getElementById('displayAge').textContent = responce.user.age;
+        document.getElementById('displayGender').textContent = responce.user.gender === 'female' ? 'Женский' : 'Мужской';
+        document.getElementById('displayHeight').textContent = (responce.user.height) + ' см';
+        document.getElementById('displayWeight').textContent = (responce.user.weight) + ' кг';
         
         const activityLabels = {
             'lazy': 'Низкий',
             'normal': 'Средний',
             'sport': 'Высокий'
         };
-        document.getElementById('displayActivity').textContent = activityLabels[responce.activity] || 'Средний';
+        document.getElementById('displayActivity').textContent = activityLabels[responce.user.activity] || 'Средний';
         
         const goalLabels = {
             'lose': 'Похудение',
             'keep_fit': 'Поддержание веса',
             'increase_str': 'Набор веса'
         };
-        document.getElementById('displayGoal').textContent = goalLabels[responce.goalType] || 'Поддержание веса';
-        document.getElementById('displayCalories').textContent = (responce.dailyCalorieLimit || 2000) + ' ккал';
+        document.getElementById('displayGoal').textContent = goalLabels[responce.user.goalType] || 'Поддержание веса';
+        document.getElementById('displayCalories').textContent = (responce.user.dailyCalorieLimit || 2000) + ' ккал';
     }
 }
