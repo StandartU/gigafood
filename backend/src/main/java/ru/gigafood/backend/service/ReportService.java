@@ -93,7 +93,7 @@ public class ReportService {
         3. Дай рекомендации: что стоит сократить, что добавить.
         """.formatted(user.getUserProfile().getDailyCalorieLimit(), foodListJson);
 
-        String jsonResponse = aiWebClientService.generateText(prompt, 200);
+        String jsonResponse = aiWebClientService.generateText(prompt, 5000);
 
         JsonNode node = mapper.readTree(jsonResponse);
 
