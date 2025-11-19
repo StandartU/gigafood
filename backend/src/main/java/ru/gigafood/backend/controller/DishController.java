@@ -60,7 +60,11 @@ public class DishController {
             .body(response);
 	}
 
-    @PostMapping("/all")
+    @PostMapping(value = "/all", produces = {
+        MediaType.IMAGE_JPEG_VALUE,
+        MediaType.IMAGE_PNG_VALUE,
+        MediaType.IMAGE_GIF_VALUE
+    })
 	public ResponseEntity<List<Meal>> getAllDishes(HttpServletRequest httpRequest) throws Exception {
         List<Meal> response = dishService.all(httpRequest);
         return ResponseEntity
