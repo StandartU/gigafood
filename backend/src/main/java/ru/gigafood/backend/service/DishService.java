@@ -1,7 +1,10 @@
 package ru.gigafood.backend.service;
 
 import java.net.MalformedURLException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -13,6 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.servlet.http.HttpServletRequest;
 import ru.gigafood.backend.config.TokenService;
+import ru.gigafood.backend.config.properties.AppProperties;
 import ru.gigafood.backend.dto.DishDto;
 import ru.gigafood.backend.entity.Meal;
 import ru.gigafood.backend.entity.Photo;
@@ -29,6 +33,9 @@ public class DishService {
 
     @Autowired
     private PhotoService photoService;
+
+    @Autowired
+    private AppProperties appProperties;
 
     @Autowired
     private MealRepository mealRepository;
@@ -142,10 +149,13 @@ public class DishService {
         return meals;
     }
 
-    public Resource getPhoto(String photoUrl, HttpServletRequest httpRequest) throws MalformedURLException {
+    public Map<String, Object> getPhoto(String photoUrl, HttpServletRequest httpRequest) throws MalformedURLException {
         boolean userPhoto = photoRepository.existsByAttachTitleAndUser(photoUrl, tokenService.getUserByRequest(httpRequest));
         if (userPhoto) {
-            return photoService.loadFileAsResource(photoUrl);
+            Path fileStorageLocation =
+            Paths.get(appProperties.getUploadPath()).toAbsolutePath().normalize();
+            Path filePath = fileStorageLocation.resolve(photoUrl).normalize();
+            return Map.of("photo", photoService.loadFileAsResource(photoUrl), "path", filePath);
         } else {
             throw new RuntimeException("Photo not found or you don't have permission to access it");
         }

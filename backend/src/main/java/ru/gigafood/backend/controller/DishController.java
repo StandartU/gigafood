@@ -1,6 +1,9 @@
 package ru.gigafood.backend.controller;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -68,10 +71,13 @@ public class DishController {
 
     @PostMapping(value = "/get_photo/{photoUrl}", produces = MediaType.IMAGE_JPEG_VALUE)
 	public ResponseEntity<Resource> getPhotoDish(@PathVariable String photoUrl, HttpServletRequest httpRequest) throws Exception {
-        Resource response = dishService.getPhoto(photoUrl, httpRequest);
+        Map<String, Object> data = dishService.getPhoto(photoUrl, httpRequest);
+
+        String contentType = Files.probeContentType((Path) data.get("path"));
         return ResponseEntity
             .status(HttpStatus.OK)
             .header(HttpHeaders.LOCATION, "/gigafood/api/v1/dish/get_photo")
-            .body(response);
+            .contentType(MediaType.parseMediaType(contentType))
+            .body((Resource) data.get("photo"));
 	}
 }
