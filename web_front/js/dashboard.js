@@ -84,7 +84,7 @@ async function addFoodToTape(food, imageUrl = null) {
     if (imageUrl) {
         item.dataset.image = imageUrl;
         const responseImage = await DishService.getPhoto(imageUrl, { Authorization: getTokens()?.access, responseType: 'blob' })
-        const currentImage = URL.createObjectURL(currentImage);
+        const currentImage = URL.createObjectURL(responseImage);
     }
     
     // Генерируем уникальный ID для элемента

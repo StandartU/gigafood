@@ -57,7 +57,8 @@ export async function apiFileReq({ path, method = "GET", headers = {} }) {
 
     const response = await fetch(url, {
         method: "GET",
-        headers: { ...headers }
+        headers: { ...headers },
+        credentials: "include"
     });
 
     if (!response.ok) {
