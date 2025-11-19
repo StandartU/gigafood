@@ -60,11 +60,7 @@ public class DishController {
             .body(response);
 	}
 
-    @PostMapping(value = "/all", produces = {
-        MediaType.IMAGE_JPEG_VALUE,
-        MediaType.IMAGE_PNG_VALUE,
-        MediaType.IMAGE_GIF_VALUE
-    })
+    @PostMapping(value = "/all")
 	public ResponseEntity<List<Meal>> getAllDishes(HttpServletRequest httpRequest) throws Exception {
         List<Meal> response = dishService.all(httpRequest);
         return ResponseEntity
@@ -73,7 +69,11 @@ public class DishController {
             .body(response);
 	}
 
-    @PostMapping(value = "/get_photo/{photoUrl}", produces = MediaType.IMAGE_JPEG_VALUE)
+    @PostMapping(value = "/get_photo/{photoUrl}", produces = {
+        MediaType.IMAGE_JPEG_VALUE,
+        MediaType.IMAGE_PNG_VALUE,
+        MediaType.IMAGE_GIF_VALUE
+    })
     @CrossOrigin(origins = "http://localhost:5500", allowCredentials = "true")
 	public ResponseEntity<Resource> getPhotoDish(@PathVariable String photoUrl, HttpServletRequest httpRequest) throws Exception {
         Map<String, Object> data = dishService.getPhoto(photoUrl, httpRequest);
