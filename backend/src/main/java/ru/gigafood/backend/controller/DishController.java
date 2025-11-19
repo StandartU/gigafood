@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -65,7 +66,7 @@ public class DishController {
             .body(response);
 	}
 
-    @PostMapping("/get_photo/{photoUrl}")
+    @PostMapping(value = "/get_photo/{photoUrl}", produces = MediaType.IMAGE_JPEG_VALUE)
 	public ResponseEntity<Resource> getPhotoDish(@PathVariable String photoUrl, HttpServletRequest httpRequest) throws Exception {
         Resource response = dishService.getPhoto(photoUrl, httpRequest);
         return ResponseEntity
