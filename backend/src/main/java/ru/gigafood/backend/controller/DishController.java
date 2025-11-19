@@ -70,6 +70,7 @@ public class DishController {
 	}
 
     @PostMapping(value = "/get_photo/{photoUrl}", produces = MediaType.IMAGE_JPEG_VALUE)
+    @CrossOrigin(origins = "http://localhost:5500", allowCredentials = "true")
 	public ResponseEntity<Resource> getPhotoDish(@PathVariable String photoUrl, HttpServletRequest httpRequest) throws Exception {
         Map<String, Object> data = dishService.getPhoto(photoUrl, httpRequest);
 
