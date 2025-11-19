@@ -56,7 +56,8 @@ async function recognizeFood(file) {
         calories: response.caloriesEstimated || 0,
         protein: response.proteinEstimated || 0,
         fat: response.fatsEstimated || 0,
-        carbs: response.carbsEstimated || 0
+        carbs: response.carbsEstimated || 0,
+        photoUrl: response.photoUrl
     };
 }
 
@@ -82,6 +83,7 @@ function addFoodToTape(food, imageUrl = null) {
     item.dataset.food = JSON.stringify(food);
     if (imageUrl) {
         item.dataset.image = imageUrl;
+        const responseImage = DishService.getPhoto(imageUrl, { Authorization: getTokens()?.access })
     }
     
     // Генерируем уникальный ID для элемента
@@ -100,7 +102,7 @@ function addFoodToTape(food, imageUrl = null) {
         `;
     } else {
         item.innerHTML = `
-            <img src="${imageUrl}" class="food-thumb" alt="${food.name}">
+            <img src="${responseImage}" class="food-thumb" alt="${food.name}">
             <div class="food-info">
                 <p class="food-name">${food.name}</p>
                 <p class="food-calories">${food.calories} ккал</p>
