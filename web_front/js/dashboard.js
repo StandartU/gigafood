@@ -20,30 +20,30 @@ import { UserService } from './api/services/userS.js'
 //     };
 // }
 
-// async function getWeeklyData() {
-//     const days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+async function getWeeklyData() {
+    const days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 
-//     const responce = await UserService.getUserData({ Authorization: getTokens()?.access });
-//     const responceReport = await ReportService.weekReport({ Authorization: getTokens()?.access });
+    const responce = await UserService.getUserData({ Authorization: getTokens()?.access });
+    const responceReport = await ReportService.weekReport({ Authorization: getTokens()?.access });
 
-//     const goal = responce ? responce.user.dailyCalorieLimit : 2000;
+    const goal = responce ? responce.user.dailyCalorieLimit : 2000;
 
-//     // Если dayCalories пустой — делаем затычку
-//     const dayCalories = responceReport.dayCalories;
-//     const caloriesArray = (dayCalories && Object.keys(dayCalories).length > 0)
-//         ? Object.values(dayCalories)
-//         : [1800, 2000, 1900, 2100, 2000, 2200, 2000]; // фиксированные значения-затычка
+    // Если dayCalories пустой — делаем затычку
+    const dayCalories = responceReport.dayCalories;
+    const caloriesArray = (dayCalories && Object.keys(dayCalories).length > 0)
+        ? Object.values(dayCalories)
+        : [1800, 2000, 1900, 2100, 2000, 2200, 2000]; // фиксированные значения-затычка
 
-//     const datasets = days.map((day, index) => {
-//         const consumed = caloriesArray[index] ?? 100; // если нет данных, подставляем минимальное
-//         return { day, consumed, goal };
-//     });
+    const datasets = days.map((day, index) => {
+        const consumed = caloriesArray[index] ?? 100; // если нет данных, подставляем минимальное
+        return { day, consumed, goal };
+    });
 
-//     return {
-//         labels: days,
-//         datasets
-//     };
-// }
+    return {
+        labels: days,
+        datasets
+    };
+}
 
 
 async function recognizeFood(file) {
@@ -64,7 +64,7 @@ async function recognizeFood(file) {
 // Переменная для хранения текущего элемента еды
 let currentFoodItem = null;
 
-function addFoodToTape(food, imageUrl = null) {
+async function addFoodToTape(food, imageUrl = null) {
     const tape = document.getElementById('foodTape');
     const card = document.getElementById('foodTapeCard');
     const container = card.querySelector('.food-tape-container');
@@ -83,7 +83,8 @@ function addFoodToTape(food, imageUrl = null) {
     item.dataset.food = JSON.stringify(food);
     if (imageUrl) {
         item.dataset.image = imageUrl;
-        const responseImage = DishService.getPhoto(imageUrl, { Authorization: getTokens()?.access })
+        const responseImage = await DishService.getPhoto(imageUrl, { Authorization: getTokens()?.access, responseType: 'blob' })
+        const currentImage = URL.createObjectURL(currentImage);
     }
     
     // Генерируем уникальный ID для элемента
@@ -102,7 +103,7 @@ function addFoodToTape(food, imageUrl = null) {
         `;
     } else {
         item.innerHTML = `
-            <img src="${responseImage}" class="food-thumb" alt="${food.name}">
+            <img src="${currentImage}" class="food-thumb" alt="${food.name}">
             <div class="food-info">
                 <p class="food-name">${food.name}</p>
                 <p class="food-calories">${food.calories} ккал</p>
@@ -110,7 +111,7 @@ function addFoodToTape(food, imageUrl = null) {
         `;
     }
 
-    item.addEventListener('click', () => openFoodModal(food, imageUrl, item));
+    item.addEventListener('click', () => openFoodModal(food, currentImage, item));
     tape.appendChild(item);
     tape.scrollLeft = tape.scrollWidth;
 }
@@ -327,7 +328,7 @@ window.closeManualInputModal = function() {
 }
 
 // Обработка отправки формы
-function handleManualFoodSubmit(e) {
+async function handleManualFoodSubmit(e) {
     e.preventDefault();
     
     const name = document.getElementById('foodName').value.trim();
@@ -350,7 +351,7 @@ function handleManualFoodSubmit(e) {
     };
     
     // Добавляем еду в ленту без фото
-    addFoodToTape(food, null);
+    await addFoodToTape(food, null);
     updateConsumedCalories(food.calories);
     closeManualInputModal();
 }
@@ -484,15 +485,15 @@ document.addEventListener('DOMContentLoaded', async function() {
     const responceDishes = await DishService.getAllDishes({ Authorization: getTokens()?.access });
 
     if (Array.isArray(responceDishes)) {
-        responceDishes.forEach(dish => {
+        responceDishes.forEach(async dish => {
             updateConsumedCalories(dish.caloriesEstimated);
-            addFoodToTape({
+            await addFoodToTape({
                 name: dish.foodName,
                 calories: dish.caloriesEstimated,
                 protein: dish.proteinEstimated,
                 fat: dish.fatsEstimated,
-                carbs: dish.carbsEstimated
-            }, null)
+                carbs: dish.carbsEstimated,
+            }, dish.photoUrl)
         });
     }
 
@@ -549,9 +550,9 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         try {
             const food = await recognizeFood(file);
-            loadingItem.remove();
-            addFoodToTape(food, imageUrl);
+            await addFoodToTape(food, imageUrl);
             updateConsumedCalories(food.calories);
+            loadingItem.remove();
         } catch (err) {
             loadingItem.remove();
             alert('Не удалось распознать еду. Попробуйте ещё раз.');

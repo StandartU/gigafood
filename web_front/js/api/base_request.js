@@ -51,3 +51,25 @@ export async function apiRequest({ path, method = "GET", body = null, file = nul
         throw error;
     }
 }
+
+export async function apiFileReq({ path, method = "GET", headers = {} }) {
+    const url = `${BASE_URL}${path}`;
+
+    const response = await fetch(url, {
+        method: "GET",
+        headers: { ...headers }
+    });
+
+    if (!response.ok) {
+        throw new Error("Ошибка загрузки фото");
+    }
+
+    console.log("API Request →", method, url, {
+        body: file ? "(FormData)" : body,
+        headers: fetchOptions.headers
+    }); 
+    console.log("Response status:", response.status);
+
+    return await response.blob();
+
+}
