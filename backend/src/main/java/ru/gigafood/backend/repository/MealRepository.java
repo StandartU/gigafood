@@ -22,10 +22,11 @@ public interface MealRepository extends JpaRepository<Meal, Long> {
     List<Meal> findAllByUser(User user);
 
     @Query(value = """
-        SELECT COALESCE(SUM(m.calories_etimated), 0)
+        SELECT COALESCE(SUM(m.calories_estimated), 0)
         FROM meals m
         WHERE m.user_id = :userId
-        AND DATE_TRUNC('day', m.meal_time) = DATE_TRUNC('day', CURRENT_DATE)
+          AND m.meal_time >= CURRENT_DATE
+          AND m.meal_time < CURRENT_DATE + INTERVAL '1 day'
     """, nativeQuery = true)
     Integer findTodayTotalCalories(@Param("userId") Long userId);
 
@@ -68,8 +69,8 @@ public interface MealRepository extends JpaRepository<Meal, Long> {
         SELECT *
         FROM meals m
         WHERE m.user_id = :userId
-        AND m.meal_time >= DATE_TRUNC('week', CURRENT_DATE)
-        AND m.meal_time < DATE_TRUNC('week', CURRENT_DATE) + INTERVAL '7 day'
+          AND m.meal_time >= DATE_TRUNC('week', CURRENT_DATE)
+          AND m.meal_time < DATE_TRUNC('week', CURRENT_DATE) + INTERVAL '7 day'
         ORDER BY m.meal_time
     """, nativeQuery = true)
     List<Meal> findMealsForCurrentWeek(@Param("userId") Long userId);
