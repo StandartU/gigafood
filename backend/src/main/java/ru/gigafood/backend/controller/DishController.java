@@ -86,9 +86,6 @@ public class DishController {
         String contentType = Files.probeContentType((Path) data.get("path"));
         return ResponseEntity
             .status(HttpStatus.OK)
-            .header(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*")
-            .header(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, "POST")
-            .header(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS, "*")
             .header(HttpHeaders.LOCATION, "/gigafood/api/v1/dish/get_photo")
             .contentType(MediaType.parseMediaType(contentType))
             .body((Resource) data.get("photo"));
