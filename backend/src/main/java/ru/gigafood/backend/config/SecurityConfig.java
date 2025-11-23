@@ -17,7 +17,6 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.web.reactive.config.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -108,14 +107,5 @@ public class SecurityConfig implements WebMvcConfigurer {
         JWK jwk = new RSAKey.Builder(rsaKeys.publicKey()).privateKey(rsaKeys.privateKey()).build();
 		JWKSource<SecurityContext> jwkSource = new ImmutableJWKSet<>(new JWKSet(jwk));
 		return new NimbusJwtEncoder(jwkSource);
-	}
-
-	public void addCorsMappings(CorsRegistry registry) {
-
-		registry.addMapping("/gigafood/api/v1/**")
-			.allowedOrigins("http://localhost:5500", "http://0.0.0.0:8080", "http://localhost:8080")
-			.allowedMethods("*")
-			.allowedHeaders("*")
-			.allowCredentials(true);
 	}
 }
