@@ -34,8 +34,8 @@ public interface MealRepository extends JpaRepository<Meal, Long> {
         SELECT COALESCE(SUM(m.calories_estimated), 0)
         FROM meals m
         WHERE m.user_id = :userId
-          AND m.meal_time >= (DATE_TRUNC('week', CURRENT_DATE)::date)
-          AND m.meal_time <  ((DATE_TRUNC('week', CURRENT_DATE)::date) + 7)
+          AND m.meal_time::date >= (DATE_TRUNC('week', CURRENT_DATE)::date)
+          AND m.meal_time::date <  ((DATE_TRUNC('week', CURRENT_DATE)::date) + 7)
     """, nativeQuery = true)
     Integer findWeekTotalCalories(@Param("userId") Long userId);
 

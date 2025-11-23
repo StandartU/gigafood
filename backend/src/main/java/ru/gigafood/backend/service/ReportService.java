@@ -59,7 +59,8 @@ public class ReportService {
     }
 
     public WeeklyReport updateReport(User user) throws JsonMappingException, JsonProcessingException {
-        Integer totalWeekCalories = mealRepository.findWeekTotalCalories(user.getId());
+        Integer totalWeekCalories = mealRepository.findWeekTotalCalories(user.getId()).intValue();
+        System.out.println(totalWeekCalories.toString());
 
         ObjectMapper mapper = new ObjectMapper();
 
@@ -82,14 +83,20 @@ public class ReportService {
 
         String prompt = """
         Ты — нутрициолог. Я передаю тебе данные за день о питании.
-        Лимит калорий на день: %d
-        Список съеденных блюд (в JSON-формате):
+
+        Данные человека (это не сколько он сьел, а его лимиты):
+        Лимит калорий на день: %d, за неделю в 7 раз больше, чем на день
+
+
+        Список съеденных блюд на неделю (в JSON-формате) (это данные об том, сколько человек потребил пищи):
         %s
 
         Проанализируй:
         1. Общие итоги калорий и БЖУ.
         2. Оцени, соблюдается ли режим.
         3. Дай рекомендации: что стоит сократить, что добавить.
+
+        Дай мне только советы, не надо обналичивать свою личность, не выдай что ты ии.
         """.formatted(user.getUserProfile().getDailyCalorieLimit(), foodListJson);
 
         String jsonResponse = aiWebClientService.generateText(prompt, 5000);
@@ -108,6 +115,7 @@ public class ReportService {
         WeeklyReport nowReport = weeklyReportOpt
             .map(report -> {
                 report.setRecomendations(recommendation);
+                report.setTotalCalories(totalWeekCalories);
                 return weeklyReportRepository.save(report);
             })
             .orElseGet(() -> {
