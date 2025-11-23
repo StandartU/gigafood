@@ -31,11 +31,11 @@ public interface MealRepository extends JpaRepository<Meal, Long> {
     Integer findTodayTotalCalories(@Param("userId") Long userId);
 
     @Query(value = """
-        SELECT COALESCE(SUM(m.calories_etimated), 0)
+        SELECT COALESCE(SUM(m.calories_estimated), 0)
         FROM meals m
         WHERE m.user_id = :userId
-        AND m.meal_time >= DATE_TRUNC('week', CURRENT_DATE)
-        AND m.meal_time < DATE_TRUNC('week', CURRENT_DATE) + INTERVAL '7 day'
+          AND m.meal_time >= (DATE_TRUNC('week', CURRENT_DATE)::date)
+          AND m.meal_time <  ((DATE_TRUNC('week', CURRENT_DATE)::date) + 7)
     """, nativeQuery = true)
     Integer findWeekTotalCalories(@Param("userId") Long userId);
 
@@ -54,7 +54,7 @@ public interface MealRepository extends JpaRepository<Meal, Long> {
 
     @Query(value = """
         SELECT DATE_TRUNC('day', m.meal_time) AS day,
-               COALESCE(SUM(m.calories_etimated), 0) AS total_calories
+               COALESCE(SUM(m.calories_estimated), 0) AS total_calories
         FROM meals m
         WHERE m.user_id = :userId
         AND m.meal_time >= DATE_TRUNC('week', CURRENT_DATE)
@@ -69,8 +69,8 @@ public interface MealRepository extends JpaRepository<Meal, Long> {
         SELECT *
         FROM meals m
         WHERE m.user_id = :userId
-          AND m.meal_time >= DATE_TRUNC('week', CURRENT_DATE)
-          AND m.meal_time < DATE_TRUNC('week', CURRENT_DATE) + INTERVAL '7 day'
+          AND m.meal_time >= (DATE_TRUNC('week', CURRENT_DATE)::date)
+          AND m.meal_time <  ((DATE_TRUNC('week', CURRENT_DATE)::date) + 7)
         ORDER BY m.meal_time
     """, nativeQuery = true)
     List<Meal> findMealsForCurrentWeek(@Param("userId") Long userId);

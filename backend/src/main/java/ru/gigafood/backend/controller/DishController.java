@@ -32,7 +32,7 @@ public class DishController {
     @Autowired
     private DishService dishService;
 
-    @PostMapping("/analyze")
+    @PostMapping(value =  "/analyze", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @CrossOrigin
 	public ResponseEntity<DishDto.analyzeResponse> analyze(@RequestParam("file") MultipartFile file, HttpServletRequest httpRequest) throws Exception {
         DishDto.analyzeRequest dtoRequest = new DishDto.analyzeRequest(file);

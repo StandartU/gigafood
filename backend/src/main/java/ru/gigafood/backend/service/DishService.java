@@ -3,6 +3,8 @@ package ru.gigafood.backend.service;
 import java.net.MalformedURLException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -115,6 +117,7 @@ public class DishService {
         meal.setFatsEstimated(fatsEstimated);
         meal.setCarbsEstimated(carbsEstimated);
         meal.setUser(user);
+        meal.setMealTime(new Date());
         meal.setManualCorrection(manualCorrection);
         meal.setPhotoUrl(photo.getAttachTitle());
         

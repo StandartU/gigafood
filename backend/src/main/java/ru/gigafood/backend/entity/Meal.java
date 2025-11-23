@@ -46,7 +46,7 @@ public class Meal {
     @Column(name = "weight_g")
     private Integer weight;
 
-    @Column(name = "calories_etimated")
+    @Column(name = "calories_estimated")
     @Min(0)
     private Integer caloriesEstimated;
 
