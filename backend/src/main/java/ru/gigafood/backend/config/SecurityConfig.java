@@ -1,5 +1,7 @@
 package ru.gigafood.backend.config;
 
+import java.util.Arrays;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,6 +19,9 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -53,16 +58,6 @@ public class SecurityConfig implements WebMvcConfigurer {
 
 	@Autowired
 	private RsaProperties rsaKeys;
-
-	@Override
-	public void addCorsMappings(CorsRegistry registry) {
-
-		registry.addMapping("/gigafood/api/v1/**")
-			.allowedOrigins("http://localhost:5500", "http://0.0.0.0:8080", "http://localhost:8080")
-			.allowedMethods("*")
-			.allowedHeaders("*")
-			.allowCredentials(true);
-	}
 	
 	@Bean
 	public BCryptPasswordEncoder passwordEncoder() {
@@ -92,7 +87,7 @@ public class SecurityConfig implements WebMvcConfigurer {
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		return http
             .csrf(csrf -> csrf.disable())
-			.cors(Customizer.withDefaults())
+			.cors(cors -> cors.configurationSource(corsConfigurationSource()))
 			.authorizeHttpRequests((authorize) -> authorize
 				.requestMatchers("/gigafood/api/v1/auth/**").permitAll()
 				.requestMatchers(
@@ -107,6 +102,20 @@ public class SecurityConfig implements WebMvcConfigurer {
         	.oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
             .build();
 	}   
+
+	@Bean
+	public CorsConfigurationSource corsConfigurationSource() {
+		CorsConfiguration config = new CorsConfiguration();
+		config.setAllowedOrigins(Arrays.asList("http://localhost:5500", "http://localhost:8080"));
+		config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+		config.setAllowedHeaders(Arrays.asList("*"));
+		config.setAllowCredentials(true);
+		config.setExposedHeaders(Arrays.asList("Content-Disposition"));
+
+		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+		source.registerCorsConfiguration("/gigafood/api/v1/**", config);
+		return source;
+	}
 
 	@Bean
 	public JwtDecoder jwtDecoder() {

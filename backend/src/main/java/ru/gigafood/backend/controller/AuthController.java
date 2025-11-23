@@ -17,7 +17,7 @@ import ru.gigafood.backend.service.AuthService;
 
 @RestController
 @RequestMapping(value = "/gigafood/api/v1/auth", produces = {"application/json"})
-@CrossOrigin
+@CrossOrigin(origins = "*")
 public class AuthController {
 
     @Autowired
