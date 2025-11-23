@@ -74,10 +74,11 @@ public class DishController {
         MediaType.IMAGE_PNG_VALUE,
         MediaType.IMAGE_GIF_VALUE
     })
-    @CrossOrigin(origins = "http://localhost:5500", allowCredentials = "true")
+    @CrossOrigin
 	public ResponseEntity<Resource> getPhotoDish(@PathVariable String photoUrl, HttpServletRequest httpRequest) throws Exception {
         Map<String, Object> data = dishService.getPhoto(photoUrl, httpRequest);
 
+        System.out.println(data.get("path"));
         String contentType = Files.probeContentType((Path) data.get("path"));
         return ResponseEntity
             .status(HttpStatus.OK)
