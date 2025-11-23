@@ -65,10 +65,6 @@ export async function apiFileReq({ path, method = "POST", headers = {} }) {
         throw new Error("Ошибка загрузки фото");
     }
 
-    console.log("API Request →", method, url, {
-        body: file ? "(FormData)" : body,
-        headers: fetchOptions.headers
-    }); 
     console.log("Response status:", response.status);
 
     return await response.blob();

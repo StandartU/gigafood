@@ -61,9 +61,6 @@ async function recognizeFood(file) {
     };
 }
 
-// Переменная для хранения текущего элемента еды
-let currentFoodItem = null;
-
 async function addFoodToTape(food, imageUrl = null) {
     const tape = document.getElementById('foodTape');
     const card = document.getElementById('foodTapeCard');
@@ -81,40 +78,59 @@ async function addFoodToTape(food, imageUrl = null) {
     const item = document.createElement('div');
     item.className = 'food-item';
     item.dataset.food = JSON.stringify(food);
-    if (imageUrl) {
-        item.dataset.image = imageUrl;
-        const responseImage = await DishService.getPhoto(imageUrl, { Authorization: getTokens()?.access, responseType: 'blob' })
-        const currentImage = URL.createObjectURL(responseImage);
-    }
-    
+
     // Генерируем уникальный ID для элемента
     item.dataset.id = 'food_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 
-    // Если нет фото, показываем иконку вместо изображения
-    if (!imageUrl) {
-        item.innerHTML = `
-            <div class="food-thumb no-image">
-                <span class="food-icon">🍽️</span>
-            </div>
-            <div class="food-info">
-                <p class="food-name">${food.name}</p>
-                <p class="food-calories">${food.calories} ккал</p>
-            </div>
-        `;
+    const infoDiv = document.createElement('div');
+    infoDiv.className = 'food-info';
+    infoDiv.innerHTML = `
+        <p class="food-name">${food.name}</p>
+        <p class="food-calories">${food.calories} ккал</p>
+    `;
+
+    let currentImage = null;
+
+    if (imageUrl) {
+        item.dataset.image = imageUrl;
+        try {
+            const responseImage = await DishService.getPhoto(imageUrl, { 
+                Authorization: getTokens()?.access, 
+                responseType: 'blob' 
+            });
+            currentImage = URL.createObjectURL(responseImage);
+
+            const img = document.createElement('img');
+            img.src = currentImage;
+            img.className = 'food-thumb';
+            img.alt = food.name;
+
+            // Вставляем картинку перед инфо-блоком
+            item.appendChild(img);
+        } catch (err) {
+            console.error('Ошибка загрузки фото:', err);
+
+            const placeholder = document.createElement('div');
+            placeholder.className = 'food-thumb no-image';
+            placeholder.innerHTML = '<span class="food-icon">🍽️</span>';
+            item.appendChild(placeholder);
+        }
     } else {
-        item.innerHTML = `
-            <img src="${currentImage}" class="food-thumb" alt="${food.name}">
-            <div class="food-info">
-                <p class="food-name">${food.name}</p>
-                <p class="food-calories">${food.calories} ккал</p>
-            </div>
-        `;
+        // Если фото нет — показываем иконку
+        const placeholder = document.createElement('div');
+        placeholder.className = 'food-thumb no-image';
+        placeholder.innerHTML = '<span class="food-icon">🍽️</span>';
+        item.appendChild(placeholder);
     }
 
+    item.appendChild(infoDiv);
+
     item.addEventListener('click', () => openFoodModal(food, currentImage, item));
+
     tape.appendChild(item);
     tape.scrollLeft = tape.scrollWidth;
 }
+
 
 function openFoodModal(food, imageUrl = null, foodItem = null) {
     const modal = document.getElementById('foodModal');
@@ -357,21 +373,32 @@ async function handleManualFoodSubmit(e) {
 }
 
 // Обновление потреблённых калорий
-function updateConsumedCalories(additional) {
+function updateConsumedCalories() {
     const consumedEl = document.getElementById('calorieConsumed');
     const progressFill = document.getElementById('progressFill');
+    const tape = document.getElementById('foodTape');
+
+    if (!tape) return;
+
+    // Берём все элементы с блюдами
+    const items = Array.from(tape.querySelectorAll('.food-item'));
+
+    // Суммируем калории
+    const totalCalories = items.reduce((sum, item) => {
+        const foodData = JSON.parse(item.dataset.food || '{}');
+        return sum + (foodData.calories || 0);
+    }, 0);
+
+    // Обновляем текст и прогресс
     const userData = getUserData();
     const goal = userData?.calorieLimit || 2000;
 
-    let currentText = consumedEl.textContent;
-    let currentConsumed = parseInt(currentText.match(/\d+/)?.[0] || '0', 10);
-    const newConsumed = Math.max(0, currentConsumed + additional);
+    consumedEl.textContent = `Потреблено: ${totalCalories} ккал`;
 
-    consumedEl.textContent = `Потреблено: ${newConsumed} ккал`;
-
-    const percentage = Math.min((newConsumed / goal) * 100, 100);
+    const percentage = Math.min((totalCalories / goal) * 100, 100);
     progressFill.style.width = `${percentage}%`;
 }
+
 
 // Инициализация графика
 let chartInstance = null;
@@ -482,20 +509,62 @@ async function updateDashboard() {
 document.addEventListener('DOMContentLoaded', async function() {
     await updateDashboard();
 
-    const responceDishes = await DishService.getAllDishes({ Authorization: getTokens()?.access });
-
-    if (Array.isArray(responceDishes)) {
-        responceDishes.forEach(async dish => {
-            updateConsumedCalories(dish.caloriesEstimated);
-            await addFoodToTape({
-                name: dish.foodName,
-                calories: dish.caloriesEstimated,
-                protein: dish.proteinEstimated,
-                fat: dish.fatsEstimated,
-                carbs: dish.carbsEstimated,
-            }, dish.photoUrl)
-        });
+    async function refreshDishes() {
+        const tape = document.getElementById('foodTape');
+        const responseDishes = await DishService.getAllDishes({ Authorization: getTokens()?.access });
+    
+        if (!Array.isArray(responseDishes)) return;
+    
+        for (const dish of responseDishes) {
+            const items = Array.from(tape.querySelectorAll('.food-item'));
+            let existing = null;
+    
+            // Ищем элемент по уникальному photoUrl
+            for (const item of items) {
+                if (item.dataset.image === dish.photoUrl) {
+                    existing = item;
+                    break;
+                }
+            }
+    
+            if (existing) {
+                // Обновляем данные существующего элемента
+                existing.dataset.food = JSON.stringify({
+                    name: dish.foodName,
+                    calories: dish.caloriesEstimated,
+                    protein: dish.proteinEstimated,
+                    fat: dish.fatsEstimated,
+                    carbs: dish.carbsEstimated
+                });
+    
+                const infoDiv = existing.querySelector('.food-info');
+                if (infoDiv) {
+                    infoDiv.innerHTML = `
+                        <p class="food-name">${dish.foodName}</p>
+                        <p class="food-calories">${dish.caloriesEstimated} ккал</p>
+                    `;
+                }
+    
+            } else {
+                // Если элемента нет — добавляем новый
+                await addFoodToTape({
+                    name: dish.foodName,
+                    calories: dish.caloriesEstimated,
+                    protein: dish.proteinEstimated,
+                    fat: dish.fatsEstimated,
+                    carbs: dish.carbsEstimated,
+                }, dish.photoUrl);
+            }
+            updateConsumedCalories();
+        }
     }
+    
+
+    // Первый запуск
+    await refreshDishes();
+
+    // Запуск каждые 5 секунд (5000 мс)
+    setInterval(refreshDishes, 5000);
 
     // Скрытый input для загрузки фото
     const fileInput = document.createElement('input');
