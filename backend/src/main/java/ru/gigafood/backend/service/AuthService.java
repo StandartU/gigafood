@@ -20,7 +20,6 @@ import ru.gigafood.backend.entity.UserProfile;
 import ru.gigafood.backend.entity.enums.Gender;
 import ru.gigafood.backend.entity.enums.GoalType;
 import ru.gigafood.backend.repository.RoleRepository;
-import ru.gigafood.backend.repository.UserProfileRepository;
 import ru.gigafood.backend.repository.UserRepository;
 
 @Service
@@ -36,9 +35,6 @@ public class AuthService {
 
     @Autowired
     private UserRepository userRepository;
-
-    @Autowired
-    private UserProfileRepository userProfileRepository;
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;

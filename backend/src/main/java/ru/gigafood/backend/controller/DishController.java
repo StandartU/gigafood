@@ -11,7 +11,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,7 +25,6 @@ import ru.gigafood.backend.entity.Meal;
 import ru.gigafood.backend.service.DishService;
 
 @RestController
-@CrossOrigin
 @RequestMapping(value = "/gigafood/api/v1/dish", produces = {"application/json"})
 public class DishController {
     @Autowired
@@ -74,7 +72,6 @@ public class DishController {
         MediaType.IMAGE_PNG_VALUE,
         MediaType.IMAGE_GIF_VALUE
     })
-    @CrossOrigin
 	public ResponseEntity<Resource> getPhotoDish(@PathVariable String photoUrl, HttpServletRequest httpRequest) throws Exception {
         Map<String, Object> data = dishService.getPhoto(photoUrl, httpRequest);
 
