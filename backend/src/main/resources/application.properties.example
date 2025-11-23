@@ -1,22 +1,25 @@
 spring.application.name=backend
-spring.security.oauth2.resourceserver.jwt.public-key-location=classpath:my-public-key.pub
+spring.security.oauth2.resourceserver.jwt.public-key-location=classpath:certs/public-key.pub
 
 
-rsa.private-key=classpath:certs/private_key.pem
-rsa.public-key=classpath:certs/my-public-key.pub
+rsa.private-key=classpath:certs/private-key.pem
+rsa.public-key=classpath:certs/public-key.pub
 app.properties.upload-path=uploads
 
 
-spring.datasource.url=jdbc:postgresql://host:port/dbname
-spring.datasource.username=username
-spring.datasource.password=password
+spring.datasource.url=jdbc:postgresql://db:5433/gigafood
+spring.datasource.username=admin
+spring.datasource.password=admin
 spring.datasource.driver-class-name=org.postgresql.Driver
 
 spring.jpa.hibernate.ddl-auto=update      
-spring.jpa.show-sql=true                   
+spring.jpa.show-sql=false                   
 spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
 
 
 spring.servlet.multipart.enabled=true
 spring.servlet.multipart.max-file-size=100MB
 spring.servlet.multipart.max-request-size=100MB
+
+server.address=0.0.0.0
+server.port=8080
