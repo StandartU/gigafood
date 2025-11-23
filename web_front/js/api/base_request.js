@@ -52,11 +52,11 @@ export async function apiRequest({ path, method = "GET", body = null, file = nul
     }
 }
 
-export async function apiFileReq({ path, method = "GET", headers = {} }) {
+export async function apiFileReq({ path, method = "POST", headers = {} }) {
     const url = `${BASE_URL}${path}`;
 
     const response = await fetch(url, {
-        method: "GET",
+        method: method,
         headers: { ...headers },
         credentials: "include"
     });
