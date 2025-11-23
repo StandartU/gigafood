@@ -1,58 +1,43 @@
 package com.example.gigafood.ui.theme
 
-import android.app.Activity
-import android.os.Build
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
-import androidx.compose.material3.lightColorScheme
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
-)
+object GigaFoodColors {
+    val Primary = Color(0xFF4C9AFF)
+    val Secondary = Color(0xFF00C48C)
+    val Background = Color(0xFFF7FAFF)
+    val Surface = Color.White
+    val OnSurface = Color(0xFF111827)
+    val OnPrimary = Color.White
+    val OnSecondary = Color.White
+}
 
-private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
+object GigaFoodDimens {
+    val ScreenPadding = 16.dp
+    val CardElevation = 6.dp
+    val BigButtonHeight = 52.dp
+    val CardCornerRadius = 12.dp
+}
 
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
-)
+val CardShape = RoundedCornerShape(GigaFoodDimens.CardCornerRadius)
 
 @Composable
-fun GigaFoodTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
-    content: @Composable () -> Unit
-) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
-
+fun GigaFoodTheme(content: @Composable () -> Unit) {
     MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
+        colorScheme = lightColorScheme(
+            primary = GigaFoodColors.Primary,
+            onPrimary = GigaFoodColors.OnPrimary,
+            secondary = GigaFoodColors.Secondary,
+            onSecondary = GigaFoodColors.OnSecondary,
+            background = GigaFoodColors.Background,
+            surface = GigaFoodColors.Surface,
+            onSurface = GigaFoodColors.OnSurface
+        ),
+        typography = Typography(),
         content = content
     )
 }
