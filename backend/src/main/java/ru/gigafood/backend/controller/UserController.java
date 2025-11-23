@@ -17,7 +17,6 @@ import ru.gigafood.backend.service.UserService;
 
 @RestController
 @RequestMapping(value = "/gigafood/api/v1/user", produces = {"application/json"})
-@CrossOrigin
 public class UserController {
     @Autowired
     private UserService userService;
