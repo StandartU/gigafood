@@ -26,12 +26,14 @@ import ru.gigafood.backend.entity.Meal;
 import ru.gigafood.backend.service.DishService;
 
 @RestController
+@CrossOrigin
 @RequestMapping(value = "/gigafood/api/v1/dish", produces = {"application/json"})
 public class DishController {
     @Autowired
     private DishService dishService;
 
     @PostMapping("/analyze")
+    @CrossOrigin
 	public ResponseEntity<DishDto.analyzeResponse> analyze(@RequestParam("file") MultipartFile file, HttpServletRequest httpRequest) throws Exception {
         DishDto.analyzeRequest dtoRequest = new DishDto.analyzeRequest(file);
         DishDto.analyzeResponse response = dishService.analyze(dtoRequest, httpRequest);
@@ -42,6 +44,7 @@ public class DishController {
 	}
 
     @PostMapping("/get/{uuid}")
+    @CrossOrigin
 	public ResponseEntity<DishDto.getDichResponse> getDish(@PathVariable String uuid, HttpServletRequest httpRequest) throws Exception {
         DishDto.getDichResponse response = dishService.getDish(uuid, httpRequest);
         return ResponseEntity
@@ -51,6 +54,7 @@ public class DishController {
 	}
 
     @PostMapping("/redact/{uuid}")
+    @CrossOrigin
 	public ResponseEntity<DishDto.redactResponse> redactDish(@PathVariable String uuid, HttpServletRequest httpRequest, @RequestBody DishDto.redactRequest dtoRequest) throws Exception {
         DishDto.redactResponse response = dishService.redact(uuid, httpRequest, dtoRequest);
         return ResponseEntity
@@ -60,6 +64,7 @@ public class DishController {
 	}
 
     @PostMapping(value = "/all")
+    @CrossOrigin
 	public ResponseEntity<List<Meal>> getAllDishes(HttpServletRequest httpRequest) throws Exception {
         List<Meal> response = dishService.all(httpRequest);
         return ResponseEntity
@@ -73,6 +78,7 @@ public class DishController {
         MediaType.IMAGE_PNG_VALUE,
         MediaType.IMAGE_GIF_VALUE
     })
+    @CrossOrigin
 	public ResponseEntity<Resource> getPhotoDish(@PathVariable String photoUrl, HttpServletRequest httpRequest) throws Exception {
         Map<String, Object> data = dishService.getPhoto(photoUrl, httpRequest);
 

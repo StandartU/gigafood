@@ -18,11 +18,13 @@ import ru.gigafood.backend.service.ReportService;
 
 @RestController
 @RequestMapping(value = "/gigafood/api/v1/report", produces = {"application/json"})
+@CrossOrigin
 public class ReportController {
     @Autowired
     private ReportService reportService;
 
     @GetMapping("/week")
+    @CrossOrigin
 	public ResponseEntity<ReportDto.getWeekReportResponce> weekReport(HttpServletRequest httpRequest) throws JsonMappingException, JsonProcessingException {
         ReportDto.getWeekReportResponce response = reportService.weekReport(httpRequest);
         return ResponseEntity
@@ -32,6 +34,7 @@ public class ReportController {
 	}
 
     @GetMapping("/day")
+    @CrossOrigin
 	public ResponseEntity<ReportDto.getDailyReportResponce> dayReport(HttpServletRequest httpRequest) {
         ReportDto.getDailyReportResponce response = reportService.dayReport(httpRequest);
         return ResponseEntity

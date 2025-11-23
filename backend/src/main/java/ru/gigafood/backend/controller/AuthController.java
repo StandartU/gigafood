@@ -17,12 +17,14 @@ import ru.gigafood.backend.service.AuthService;
 
 @RestController
 @RequestMapping(value = "/gigafood/api/v1/auth", produces = {"application/json"})
+@CrossOrigin
 public class AuthController {
 
     @Autowired
     private AuthService authService;
 
     @PostMapping("/signup")
+    @CrossOrigin
     public ResponseEntity<AuthDto.SingupResponse> singup(@RequestBody AuthDto.SingupRequest request) {
         AuthDto.SingupResponse response = authService.signup(request);
         return ResponseEntity
@@ -32,11 +34,13 @@ public class AuthController {
 	}
 
 	@PostMapping("/login")
+        @CrossOrigin
 	public AuthDto.LoginResponse login(@RequestBody AuthDto.LoginRequest request) {
         return authService.login(request);
 	}
 
 	@GetMapping("/token/refresh")
+        @CrossOrigin
 	public AuthDto.RefreshTokenResponse refreshToken(HttpServletRequest request) {
         return authService.refresh(request);
 	}
