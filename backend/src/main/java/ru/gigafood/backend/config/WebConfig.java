@@ -14,8 +14,8 @@ public class WebConfig implements WebMvcConfigurer {
 
 		registry.addMapping("/gigafood/api/v1/**")
 			.allowedOrigins("http://localhost:5500", "http://0.0.0.0:8080", "http://localhost:8080")
-			.allowedMethods("*")
-			.allowedHeaders("*")
+			.allowedMethods("POST", "GET", "HEAD", "OPTIONS")
+			.allowedHeaders("Authorization")
 			.allowCredentials(true);
 	}
 }
