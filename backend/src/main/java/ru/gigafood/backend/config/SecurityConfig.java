@@ -87,7 +87,6 @@ public class SecurityConfig implements WebMvcConfigurer {
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		return http
             .csrf(csrf -> csrf.disable())
-			.cors(cors -> cors.configurationSource(corsConfigurationSource()))
 			.authorizeHttpRequests((authorize) -> authorize
 				.requestMatchers("/gigafood/api/v1/auth/**").permitAll()
 				.requestMatchers(
@@ -100,17 +99,17 @@ public class SecurityConfig implements WebMvcConfigurer {
 			)
         	.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         	.oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
+			.cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .build();
 	}   
 
 	@Bean
 	public CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration config = new CorsConfiguration();
-		config.setAllowedOrigins(Arrays.asList("http://localhost:5500", "http://localhost:8080"));
-		config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+		config.setAllowedOrigins(Arrays.asList("*"));
+		config.setAllowedMethods(Arrays.asList("*"));
 		config.setAllowedHeaders(Arrays.asList("*"));
 		config.setAllowCredentials(true);
-		config.setExposedHeaders(Arrays.asList("Content-Disposition"));
 
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		source.registerCorsConfiguration("/gigafood/api/v1/**", config);
