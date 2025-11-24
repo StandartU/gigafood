@@ -106,7 +106,7 @@ public class SecurityConfig implements WebMvcConfigurer {
 	@Bean
 	public CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration config = new CorsConfiguration();
-		config.setAllowedOrigins(Arrays.asList("http://localhost:5500", "http://127.0.0.1:5500"));
+		config.setAllowedOrigins(Arrays.asList("*"));
 		config.setAllowedMethods(Arrays.asList("*"));
 		config.setAllowedHeaders(Arrays.asList("*"));
 		config.setAllowCredentials(true);
