@@ -97,6 +97,9 @@ public class ReportService {
         3. Дай рекомендации: что стоит сократить, что добавить.
 
         Дай мне только советы, не надо обналичивать свою личность, не выдай что ты ии.
+
+        Если json пришёл пустой или его просто у тебя нет, значит пользователь ничего не ел, скажи что-нибудь
+        по типу (вы ничего не ели, начните есть чтобы я мог дать вам свои рекомендации)
         """.formatted(user.getUserProfile().getDailyCalorieLimit(), foodListJson);
 
         String jsonResponse = aiWebClientService.generateText(prompt, 5000);
