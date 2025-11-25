@@ -81,33 +81,10 @@ public class ReportService {
             .writerWithDefaultPrettyPrinter()
             .writeValueAsString(foodList);
 
-        String prompt = """
-        Ты — нутрициолог. Я передаю тебе данные за день о питании.
+        String recommendation = foodList.isEmpty() 
+        ? "Нет данных для загрузки рекомендаций" 
+        : getRecommendationFromAI(user, foodListJson);
 
-        Данные человека (это не сколько он сьел, а его лимиты):
-        Лимит калорий на день: %d, за неделю в 7 раз больше, чем на день
-
-
-        Список съеденных блюд на неделю (в JSON-формате) (это данные об том, сколько человек потребил пищи):
-        %s
-
-        Проанализируй:
-        1. Общие итоги калорий и БЖУ.
-        2. Оцени, соблюдается ли режим.
-        3. Дай рекомендации: что стоит сократить, что добавить.
-
-        Дай мне только советы, не надо обналичивать свою личность, не выдай что ты ии.
-
-        Если json пришёл пустой или его просто у тебя нет, значит пользователь ничего не ел, скажи что-нибудь
-        по типу (вы ничего не ели, начните есть чтобы я мог дать вам свои рекомендации)
-        """.formatted(user.getUserProfile().getDailyCalorieLimit(), foodListJson);
-
-        String jsonResponse = aiWebClientService.generateText(prompt, 5000);
-
-        JsonNode node = mapper.readTree(jsonResponse);
-
-        String rawRecommendation = node.path("generated_text").asText();
-        String recommendation = (rawRecommendation == null || rawRecommendation.isBlank()) ? "none" : rawRecommendation;
 
         Optional<WeeklyReport> weeklyReportOpt = weeklyReportRepository.findByUserAndWeekRange(
             user,
@@ -131,5 +108,37 @@ public class ReportService {
                 return weeklyReportRepository.save(weeklyReport);
             });
         return nowReport;
+    }
+
+    private String getRecommendationFromAI(User user, String foodListJson) throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        String prompt = """
+            Ты — нутрициолог. Я передаю тебе данные за день о питании.
+    
+            Данные человека (это не сколько он сьел, а его лимиты):
+            Лимит калорий на день: %d, за неделю в 7 раз больше, чем на день
+    
+    
+            Список съеденных блюд на неделю (в JSON-формате) (это данные об том, сколько человек потребил пищи):
+            %s
+    
+            Проанализируй:
+            1. Общие итоги калорий и БЖУ.
+            2. Оцени, соблюдается ли режим.
+            3. Дай рекомендации: что стоит сократить, что добавить.
+    
+            Дай мне только советы, не надо обналичивать свою личность, не выдай что ты ии.
+    
+            Если json пришёл пустой или его просто у тебя нет, значит пользователь ничего не ел, скажи что-нибудь
+            по типу (вы ничего не ели, начните есть чтобы я мог дать вам свои рекомендации)
+            """.formatted(user.getUserProfile().getDailyCalorieLimit(), foodListJson);
+    
+            String jsonResponse = aiWebClientService.generateText(prompt, 5000);
+    
+            JsonNode node = mapper.readTree(jsonResponse);
+    
+            String rawRecommendation = node.path("generated_text").asText();
+            String recommendation = (rawRecommendation == null || rawRecommendation.isBlank()) ? "none" : rawRecommendation;
+            return recommendation;
     }
 }
