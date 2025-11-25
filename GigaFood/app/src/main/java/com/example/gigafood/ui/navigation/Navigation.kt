@@ -26,7 +26,7 @@ fun AppNavigation() {
 
     when (currentScreen) {
         Screen.Login -> LoginScreen(
-            onLoginClick = { currentScreen = Screen.Main },
+            onLoginSuccess = { currentScreen = Screen.Main },
             onRegisterClick = { currentScreen = Screen.Register },
             onResetPasswordClick = { currentScreen = Screen.ResetPassword }
         )
@@ -47,7 +47,6 @@ fun AppNavigation() {
             onRecommendationsClick = { currentScreen = Screen.Recommendations },
             onWeeklyReportClick = { currentScreen = Screen.WeeklyReport },
             onCameraClick = { currentScreen = Screen.Camera },
-            foodItems = foodItems,
             onFoodItemClick = { foodItem ->
                 selectedFoodItem = foodItem
                 currentScreen = Screen.FoodEdit

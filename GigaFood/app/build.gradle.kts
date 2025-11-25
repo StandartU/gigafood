@@ -71,6 +71,28 @@ dependencies {
     implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
     implementation("androidx.camera:camera-view:$cameraxVersion")
 
+    // --- Retrofit ---
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+
+    // Конвертер JSON → объекты
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+
+    // --- OkHttp ---
+    implementation("com.squareup.okhttp3:okhttp:4.11.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
+
+    // multipart входит в okhttp → ничего добавлять не надо
+
+    // --- Kotlin ---
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.22")
+
+    // --- Coroutines (если будешь использовать suspend) ---
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+
+    // --- AndroidX ---
+    implementation("androidx.core:core-ktx:1.12.0")
+
     // Если используете Compose
     implementation("androidx.activity:activity-compose:1.8.2")
 }

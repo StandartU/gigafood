@@ -32,26 +32,60 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.text.style.TextAlign
+import com.example.gigafood.api.ApiClient
+import com.example.gigafood.api.ApiRepository
+import com.example.gigafood.api.ApiService
+import com.example.gigafood.api.AuthTokens
+import com.example.gigafood.api.services.UserService
 
 import com.example.gigafood.ui.components.ScreenHeader
 import com.example.gigafood.ui.theme.*
 import com.example.gigafood.ui.theme.GigaFoodDimens.ScreenPadding
+import kotlinx.coroutines.launch
+import okhttp3.ResponseBody
+import retrofit2.Call
+import retrofit2.Response
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(onBackClick: () -> Unit) {
     val context = LocalContext.current
-    val prefs = remember { context.getSharedPreferences("profile_prefs", Context.MODE_PRIVATE) }
-    var profileData by remember { mutableStateOf(ProfileData.fromPrefs(prefs)) }
+    var isLoading by remember { mutableStateOf(true) }
+    var profileData by remember { mutableStateOf(ProfileData()) }
 
-    // Авто-расчёт калорий
-    LaunchedEffect(
-        profileData.age, profileData.weight, profileData.height,
-        profileData.gender, profileData.activity, profileData.goal, profileData.autoCalc
-    ) {
-        if (profileData.autoCalc && hasValidData(profileData)) {
-            profileData = profileData.copy(dailyLimit = calculateCalories(profileData).toString())
-        }
+    // Создаем сервис API
+    val api = ApiClient.retrofit.create(ApiService::class.java)
+    val repo = ApiRepository(api)
+    val userService = UserService(repo)
+
+
+
+    // Загрузка данных пользователя при старте
+    LaunchedEffect(Unit) {
+        isLoading = true
+        val call = userService.getData(AuthTokens.getAuthHeader())
+        call.enqueue(object : retrofit2.Callback<ResponseBody> {
+            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                if (response.isSuccessful) {
+                    response.body()?.let { body ->
+                        try {
+                            val user = parseUserData(body.string())
+                            profileData = user
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    }
+                }
+                isLoading = false
+            }
+
+            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                t.printStackTrace()
+                isLoading = false
+            }
+        })
+        isLoading = false
     }
 
     Surface(modifier = Modifier.fillMaxSize()) {
@@ -62,7 +96,6 @@ fun ProfileScreen(onBackClick: () -> Unit) {
         ) {
             Spacer(modifier = Modifier.height(44.dp))
 
-            // Такой же хедер, как в PhotoPreviewScreen
             ScreenHeader(
                 title = "Мой профиль",
                 onBackClick = onBackClick
@@ -76,170 +109,197 @@ fun ProfileScreen(onBackClick: () -> Unit) {
                     .weight(1f)
                     .verticalScroll(rememberScrollState())
             ) {
-                ProfileDataCard(
-                    profileData = profileData,
-                    onProfileDataChange = { profileData = it },
-                    onSaveClick = {
-                        profileData.saveToPrefs(prefs)
-                        Toast.makeText(context, "Профиль сохранён", Toast.LENGTH_SHORT).show()
-                    },
-                    onDeleteClick = {
-                        prefs.edit().clear().apply()
-                        profileData = ProfileData()
-                        Toast.makeText(context, "Аккаунт удалён", Toast.LENGTH_LONG).show()
-                    }
-                )
+                if (isLoading) {
+                    Text(
+                        "Загрузка...",
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                } else {
+                    val scope = rememberCoroutineScope()
 
-                Spacer(modifier = Modifier.height(100.dp)) // запас под прокрутку
+                    ProfileDataCard(
+                        profileData = profileData,
+                        onProfileDataChange = { profileData = it },
+                        onSaveClick = {
+                            isLoading = true
+                            val call = userService.redact(
+                                mapProfileDataToDto(profileData),
+                                AuthTokens.getAuthHeader()
+                            )
+                            call.enqueue(object : retrofit2.Callback<ResponseBody> {
+                                override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                                    isLoading = false
+                                    if (response.isSuccessful) {
+                                        Toast.makeText(context, "Профиль сохранён", Toast.LENGTH_SHORT).show()
+                                    } else {
+                                        Toast.makeText(context, "Ошибка сохранения", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+
+                                override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                                    isLoading = false
+                                    t.printStackTrace()
+                                    Toast.makeText(context, "Ошибка сети", Toast.LENGTH_SHORT).show()
+                                }
+                            })
+                        },
+                        onDeleteClick = {
+                            profileData = ProfileData()
+                            Toast.makeText(context, "Аккаунт удалён", Toast.LENGTH_LONG).show()
+                        }
+                    )
+                }
+                Spacer(modifier = Modifier.height(100.dp))
             }
         }
     }
 }
 
+// Преобразование JSON ответа API в ProfileData
+private fun parseUserData(jsonString: String): ProfileData {
+    // Простой парсинг с использованием org.json
+    val json = org.json.JSONObject(jsonString)
+    val user = json.getJSONObject("user")
+    return ProfileData(
+        fio = "", // на сервере имени нет, оставляем пустым
+        age = user.optInt("age", 30).toString(),
+        gender = when (user.optString("gender", "MALE")) {
+            "FEMALE" -> "Женский"
+            else -> "Мужской"
+        },
+        height = user.optInt("height", 180).toString(),
+        weight = user.optInt("weight", 75).toString(),
+        activity = when (user.optString("activityLevel", "NORMAL")) {
+            "SPORT" -> "Высокий"
+            "LAZY" -> "Низкий"
+            else -> "Средний"
+        },
+        goal = when (user.optString("goalType", "KEEP_FIT")) {
+            "LOSE" -> "Сброс веса"
+            "INCREASE_STR" -> "Набор массы"
+            else -> "Поддержание"
+        },
+        dailyLimit = user.optInt("dailyCalorieLimit", 2000).toString(),
+        autoCalc = user.optBoolean("autoCalcCalloriesLimit", true)
+    )
+}
+
+// Преобразование ProfileData в DTO для API
+private fun mapProfileDataToDto(profileData: ProfileData): Map<String, Any> {
+    val gender = if (profileData.gender == "Женский") "FEMALE" else "MALE"
+    val activity = when (profileData.activity) {
+        "Низкий" -> "LAZY"
+        "Высокий" -> "SPORT"
+        else -> "NORMAL"
+    }
+    val goal = when (profileData.goal) {
+        "Сброс веса" -> "LOSE"
+        "Набор массы" -> "INCREASE_STR"
+        else -> "KEEP_FIT"
+    }
+    return mapOf(
+        "gender" to gender,
+        "age" to (profileData.age.toIntOrNull() ?: 0),
+        "height" to (profileData.height.toIntOrNull() ?: 0),
+        "weight" to (profileData.weight.toIntOrNull() ?: 0),
+        "activityLevel" to activity,
+        "goalType" to goal,
+        "dailyCalorieLimit" to (profileData.dailyLimit.toIntOrNull() ?: 0),
+        "autoCalcCalloriesLimit" to profileData.autoCalc
+    )
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ProfileDataCard(
+fun ProfileDataCard(
     profileData: ProfileData,
     onProfileDataChange: (ProfileData) -> Unit,
     onSaveClick: () -> Unit,
     onDeleteClick: () -> Unit
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = CardShape,
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
-    ) {
-        Column(modifier = Modifier.padding(18.dp)) {
-            // ФИО
-            ProfileTextField(
-                value = profileData.fio,
-                onValueChange = { onProfileDataChange(profileData.copy(fio = it)) },
-                label = "ФИО",
-                leadingIcon = Icons.Default.Person
-            )
-            Spacer(Modifier.height(16.dp))
-
-            // Пол + Возраст
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Card(
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            ),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                ProfileTextField(
+                    value = profileData.age,
+                    onValueChange = { onProfileDataChange(profileData.copy(age = it)) },
+                    label = "Возраст",
+                    keyboardType = KeyboardType.Number
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                ProfileTextField(
+                    value = profileData.height,
+                    onValueChange = { onProfileDataChange(profileData.copy(height = it)) },
+                    label = "Рост (см)",
+                    keyboardType = KeyboardType.Number
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                ProfileTextField(
+                    value = profileData.weight,
+                    onValueChange = { onProfileDataChange(profileData.copy(weight = it)) },
+                    label = "Вес (кг)",
+                    keyboardType = KeyboardType.Number
+                )
+                Spacer(modifier = Modifier.height(8.dp))
                 ProfileDropdown(
                     value = profileData.gender,
                     onValueSelected = { onProfileDataChange(profileData.copy(gender = it)) },
                     label = "Пол",
-                    options = listOf("Мужской", "Женский"),
-                    modifier = Modifier.weight(1f)
+                    options = listOf("Мужской", "Женский")
                 )
-                ProfileTextField(
-                    value = profileData.age,
-                    onValueChange = { onProfileDataChange(profileData.copy(age = it.filter { it.isDigit() })) },
-                    label = "Возраст",
-                    keyboardType = KeyboardType.Number,
-                    modifier = Modifier.weight(1f)
+                Spacer(modifier = Modifier.height(8.dp))
+                ProfileDropdown(
+                    value = profileData.activity,
+                    onValueSelected = { onProfileDataChange(profileData.copy(activity = it)) },
+                    label = "Активность",
+                    options = listOf("Низкий", "Средний", "Высокий")
                 )
-            }
-            Spacer(Modifier.height(16.dp))
-
-            // Рост + Вес
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                ProfileTextField(
-                    value = profileData.height,
-                    onValueChange = { onProfileDataChange(profileData.copy(height = it.filter { it.isDigit() })) },
-                    label = "Рост (см)",
-                    keyboardType = KeyboardType.Number,
-                    modifier = Modifier.weight(1f)
+                Spacer(modifier = Modifier.height(8.dp))
+                ProfileDropdown(
+                    value = profileData.goal,
+                    onValueSelected = { onProfileDataChange(profileData.copy(goal = it)) },
+                    label = "Цель",
+                    options = listOf("Сброс веса", "Поддержание", "Набор массы")
                 )
-                ProfileTextField(
-                    value = profileData.weight,
-                    onValueChange = { onProfileDataChange(profileData.copy(weight = it.filter { it.isDigit() })) },
-                    label = "Вес (кг)",
-                    keyboardType = KeyboardType.Number,
-                    modifier = Modifier.weight(1f)
-                )
-            }
-            Spacer(Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-            // Активность и цель
-            ProfileDropdown(
-                value = profileData.activity,
-                onValueSelected = { onProfileDataChange(profileData.copy(activity = it)) },
-                label = "Уровень активности",
-                options = listOf("Низкий", "Средний", "Высокий", "Очень высокий")
-            )
-            Spacer(Modifier.height(16.dp))
-
-            ProfileDropdown(
-                value = profileData.goal,
-                onValueSelected = { onProfileDataChange(profileData.copy(goal = it)) },
-                label = "Цель",
-                options = listOf("Сброс веса", "Поддержание", "Набор массы")
-            )
-            Spacer(Modifier.height(28.dp))
-
-            // Авто-расчёт
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column {
-                    Text("Авто-расчёт калорий", style = MaterialTheme.typography.titleMedium)
-                    Text(
-                        "По формуле Миффлина-Сан Жеора",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    )
+                // Авторасчет калорий
+                if (profileData.autoCalc && hasValidData(profileData)) {
+                    CalculationDetails(profileData = profileData)
                 }
-                Switch(
-                    checked = profileData.autoCalc,
-                    onCheckedChange = { onProfileDataChange(profileData.copy(autoCalc = it)) }
-                )
-            }
 
-            Spacer(Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-            ProfileTextField(
-                value = profileData.dailyLimit,
-                onValueChange = { onProfileDataChange(profileData.copy(dailyLimit = it.filter { it.isDigit() })) },
-                label = "Лимит калорий в день",
-                keyboardType = KeyboardType.Number,
-                readOnly = profileData.autoCalc
-            )
-
-            // Детали расчёта
-            if (profileData.autoCalc && hasValidData(profileData)) {
-                Spacer(Modifier.height(16.dp))
-                CalculationDetails(profileData)
-            }
-
-            Spacer(Modifier.height(36.dp))
-
-            // Кнопка "Сохранить"
-            Button(
-                onClick = onSaveClick,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(BigButtonHeight),
-                shape = RoundedCornerShape(10.dp)
-            ) {
-                Text("Сохранить изменения", fontWeight = FontWeight.SemiBold)
-            }
-
-            Spacer(Modifier.height(12.dp))
-
-            // Удалить аккаунт
-            OutlinedButton(
-                onClick = onDeleteClick,
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Red),
-                border = ButtonDefaults.outlinedButtonBorder.copy(
-                    brush = Brush.horizontalGradient(listOf(Color.Red.copy(0.4f), Color.Red))
-                )
-            ) {
-                Icon(Icons.Default.DeleteForever, contentDescription = null, tint = Color.Red)
-                Spacer(Modifier.width(8.dp))
-                Text("Удалить аккаунт", color = Color.Red, fontWeight = FontWeight.Medium)
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Button(
+                        onClick = onSaveClick,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Сохранить")
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Button(
+                        onClick = onDeleteClick,
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Удалить")
+                    }
+                }
             }
         }
     }
 }
+
 // Функция расчета калорий по формуле Миффлина-Сан Жеора
 private fun calculateCalories(profileData: ProfileData): Int {
     val age = profileData.age.toIntOrNull() ?: 30

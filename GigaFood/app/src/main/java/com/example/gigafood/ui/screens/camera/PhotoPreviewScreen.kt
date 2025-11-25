@@ -1,7 +1,9 @@
 package com.example.gigafood.ui.screens.camera
 
+import android.content.Context
 import android.graphics.BitmapFactory
 import android.util.Base64
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -16,11 +18,21 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.example.gigafood.api.ApiClient
+import com.example.gigafood.api.ApiRepository
+import com.example.gigafood.api.ApiService
+import com.example.gigafood.api.AuthTokens
+import com.example.gigafood.api.services.DishService
 import com.example.gigafood.ui.components.ScreenHeader
 import com.example.gigafood.ui.theme.*
 import com.example.gigafood.ui.theme.GigaFoodDimens.BigButtonHeight
 import com.example.gigafood.ui.theme.GigaFoodDimens.ScreenPadding
+import okhttp3.ResponseBody
+import retrofit2.Call
+import retrofit2.Response
+import java.io.File
 
 @Composable
 fun PhotoPreviewScreen(
@@ -35,10 +47,47 @@ fun PhotoPreviewScreen(
     var description by remember { mutableStateOf("Куриная грудка с рисом и овощами") }
     var showEditDialog by remember { mutableStateOf(false) }
 
-    // Декодируем изображение заранее
+    val context = LocalContext.current
+
     val decodedImage = remember(imageData) {
         imageData?.let { decodeBase64ToImageBitmap(it) }
     }
+
+    val bytes = Base64.decode(imageData, Base64.DEFAULT)
+    val file = File(context.cacheDir, "photo.jpg")
+    file.writeBytes(bytes)
+
+    val api = ApiClient.retrofit.create(ApiService::class.java)
+    val repo = ApiRepository(api)
+    val dishService = DishService(repo)
+    val call = dishService.analyze(file, AuthTokens.getAuthHeader())
+    call.enqueue(object : retrofit2.Callback<ResponseBody> {
+        override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+            if (response.isSuccessful) {
+                val jsonStr = response.body()?.string()
+                if (!jsonStr.isNullOrEmpty()) {
+                    val gson = com.google.gson.Gson()
+                    val map = gson.fromJson(jsonStr, Map::class.java)
+                    val dishInfo = map["dish"] as? Map<*, *>
+                    val calories = dishInfo?.get("calories") as? String
+                    val protein = dishInfo?.get("protein") as? String
+                    val fats = dishInfo?.get("fats") as? String
+                    val carbs = dishInfo?.get("carbs") as? String
+                    val description = dishInfo?.get("description") as? String
+
+                    Log.d("CameraScreen", "Dish info: $calories, $protein, $fats, $carbs, $description")
+                    // Можно вызвать callback в Compose
+                    // onPhotoAnalyzed(calories, protein, fats, carbs, description)
+                }
+            } else {
+                Log.e("CameraScreen", "Analyze failed: ${response.code()}")
+            }
+        }
+
+        override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+            Log.e("CameraScreen", "API call failed", t)
+        }
+    })
 
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(

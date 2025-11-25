@@ -31,6 +31,13 @@ import java.io.ByteArrayOutputStream
 import java.util.concurrent.Executors
 import android.util.Base64
 import androidx.camera.core.ImageCapture.OnImageCapturedCallback
+import com.example.gigafood.api.ApiClient
+import com.example.gigafood.api.ApiRepository
+import com.example.gigafood.api.ApiService
+import com.example.gigafood.api.AuthTokens
+import com.example.gigafood.api.services.DishService
+import com.example.gigafood.api.services.ReportService
+import java.io.File
 
 @Composable
 fun CameraScreen(
@@ -109,6 +116,7 @@ private fun CameraPreviewWithCapture(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
+
 
     var imageCapture: ImageCapture? by remember { mutableStateOf(null) }
     var isCapturing by remember { mutableStateOf(false) }
