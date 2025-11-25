@@ -14,9 +14,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.gigafood.api.ApiClient
+import com.example.gigafood.api.ApiRepository
+import com.example.gigafood.api.ApiService
+import com.example.gigafood.api.AuthTokens
+import com.example.gigafood.api.services.ReportService
 import com.example.gigafood.ui.components.ScreenHeader
 import com.example.gigafood.ui.theme.*
 import com.example.gigafood.ui.theme.GigaFoodDimens.ScreenPadding
+import okhttp3.ResponseBody
+import retrofit2.Call
+import retrofit2.Response
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,14 +62,50 @@ fun RecommendationsScreen(onBackClick: () -> Unit) {
 
 @Composable
 private fun RecommendationsCard() {
-    val recommendations = listOf(
-        "Увеличьте потребление белка до 100 г в день.",
-        "Сократите потребление сахара на 20%.",
-        "Добавляйте овощи к каждому приёму пищи.",
-        "Пейте не менее 2 литров воды в день.",
-        "Старайтесь есть каждые 3–4 часа.",
-        "Замените сладкие напитки на воду или чай без сахара."
+    val api = ApiClient.retrofit.create(ApiService::class.java)
+    val repo = ApiRepository(api)
+    val reportService = ReportService(repo)
+
+    // --- состояние для загрузки рекомендаций с API ---
+    var apiRecommendation by remember { mutableStateOf<String?>(null) }
+
+    // --- загрузка один раз при появлении карточки ---
+    LaunchedEffect(Unit) {
+        try {
+            // используем токен из AuthTokens
+            val call = reportService.week(AuthTokens.getAuthHeader())
+            call.enqueue(object : retrofit2.Callback<ResponseBody> {
+                override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                    if (response.isSuccessful) {
+                        val jsonStr = response.body()?.string()
+                        if (!jsonStr.isNullOrEmpty()) {
+                            val gson = com.google.gson.Gson()
+                            val map = gson.fromJson(jsonStr, Map::class.java)
+                            val report = map["report"] as? Map<*, *>
+                            val rec = report?.get("recomendations") as? String
+                            if (!rec.isNullOrEmpty()) {
+                                apiRecommendation = rec
+                            }
+                        }
+                    }
+                }
+
+                override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                    t.printStackTrace()
+                }
+            })
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    // --- твой существующий дефолтный список ---
+    val defaultRecommendations = listOf(
+        "Загрузка рекомендаций..."
     )
+
+
+    val recommendations = if (apiRecommendation != null) listOf(apiRecommendation!!) else defaultRecommendations
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -69,9 +113,7 @@ private fun RecommendationsCard() {
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
     ) {
         Column(modifier = Modifier.padding(18.dp)) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     Icons.Default.TipsAndUpdates,
                     contentDescription = null,
@@ -91,11 +133,8 @@ private fun RecommendationsCard() {
             recommendations.forEachIndexed { index, recommendation ->
                 AnimatedVisibility(
                     visible = true,
-                    enter = fadeIn(
-                        animationSpec = tween(600, delayMillis = index * 150)
-                    ) + slideInVertically(
-                        animationSpec = tween(600, delayMillis = index * 150)
-                    )
+                    enter = fadeIn(animationSpec = tween(600, delayMillis = index * 150)) +
+                            slideInVertically(animationSpec = tween(600, delayMillis = index * 150))
                 ) {
                     Row(
                         verticalAlignment = Alignment.Top,

@@ -23,18 +23,34 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.gigafood.api.ApiClient
+import com.example.gigafood.api.ApiRepository
+import com.example.gigafood.api.ApiService
+import com.example.gigafood.api.AuthTokens
+import com.example.gigafood.api.services.AuthService
 import com.example.gigafood.ui.components.GigaFoodButton
 import com.example.gigafood.ui.components.GigaFoodCard
 import com.example.gigafood.ui.theme.GigaFoodDimens
+import okhttp3.ResponseBody
+import org.json.JSONObject
+import retrofit2.Call
+import retrofit2.Response
 
 @Composable
 fun LoginScreen(
-    onLoginClick: () -> Unit,
+    onLoginSuccess: () -> Unit,
     onRegisterClick: () -> Unit,
     onResetPasswordClick: () -> Unit
 ) {
     var mail by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
+    var errorMsg by remember { mutableStateOf<String?>(null) }
+
+    // --- Инициализация API ---
+    val api = ApiClient.retrofit.create(ApiService::class.java)
+    val repo = ApiRepository(api)
+    val authService = AuthService(repo)
 
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -50,7 +66,6 @@ fun LoginScreen(
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
-
             )
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -71,10 +86,55 @@ fun LoginScreen(
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(16.dp))
+
+                if (!errorMsg.isNullOrEmpty()) {
+                    Text(errorMsg!!, color = MaterialTheme.colorScheme.error)
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+
                 GigaFoodButton(
-                    text = "Войти",
-                    onClick = onLoginClick
+                    text = if (isLoading) "Вход..." else "Войти",
+                    onClick = {
+                        isLoading = true
+                        errorMsg = null
+
+                        // --- Вызов API login ---
+                        authService.login(mapOf(
+                            "username" to mail,
+                            "password" to password
+                        )).enqueue(object : retrofit2.Callback<ResponseBody> {
+                            override fun onResponse(
+                                call: Call<ResponseBody>,
+                                response: Response<ResponseBody>
+                            ) {
+                                isLoading = false
+                                if (response.isSuccessful) {
+                                    val bodyString = response.body()?.string()
+                                    if (bodyString != null) {
+                                        try {
+                                            val json = JSONObject(bodyString)
+                                            AuthTokens.accessToken = json.getString("access_jwt_token")
+                                            AuthTokens.refreshToken = json.getString("refresh_jwt_token")
+                                            onLoginSuccess()
+                                        } catch (e: Exception) {
+                                            errorMsg = "Ошибка парсинга ответа"
+                                        }
+                                    } else {
+                                        errorMsg = "Пустой ответ от сервера"
+                                    }
+                                } else {
+                                    errorMsg = "Ошибка входа: ${response.code()}"
+                                }
+                            }
+
+                            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                                isLoading = false
+                                errorMsg = "Ошибка: ${t.localizedMessage}"
+                            }
+                        })
+                    }
                 )
+
                 Spacer(modifier = Modifier.height(8.dp))
                 TextButton(
                     onClick = onRegisterClick,

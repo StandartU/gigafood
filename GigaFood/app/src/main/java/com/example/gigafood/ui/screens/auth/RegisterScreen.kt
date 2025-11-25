@@ -23,9 +23,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.gigafood.api.ApiClient
+import com.example.gigafood.api.ApiRepository
+import com.example.gigafood.api.ApiService
+import com.example.gigafood.api.services.AuthService
 import com.example.gigafood.ui.components.GigaFoodButton
 import com.example.gigafood.ui.components.GigaFoodCard
 import com.example.gigafood.ui.theme.GigaFoodDimens
+import okhttp3.ResponseBody
+import retrofit2.Call
+import retrofit2.Response
+
 @Composable
 fun RegisterScreen(
     onRegisterClick: () -> Unit,
@@ -34,6 +42,12 @@ fun RegisterScreen(
     var login by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirm by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
+    var errorMsg by remember { mutableStateOf<String?>(null) }
+
+    val api = ApiClient.retrofit.create(ApiService::class.java)
+    val repo = ApiRepository(api)
+    val authService = AuthService(repo)
 
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -80,9 +94,45 @@ fun RegisterScreen(
 
                 Spacer(modifier = Modifier.height(18.dp))
 
+                if (!errorMsg.isNullOrEmpty()) {
+                    Text(errorMsg!!, color = MaterialTheme.colorScheme.error)
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+
                 GigaFoodButton(
-                    text = "Зарегистрироваться",
-                    onClick = onRegisterClick
+                    text = if (isLoading) "Регистрация..." else "Зарегистрироваться",
+                    onClick = {
+                        if (password != confirm) {
+                            errorMsg = "Пароли не совпадают"
+                            return@GigaFoodButton
+                        }
+                        errorMsg = null
+                        isLoading = true
+
+                        // --- Вызов API singup ---
+                        val headers = emptyMap<String, String>() // добавь токены/заголовки, если нужно
+                        authService.signup(mapOf(
+                            "username" to login,
+                            "password" to password
+                        )).enqueue(object : retrofit2.Callback<ResponseBody> {
+                            override fun onResponse(
+                                call: Call<ResponseBody>,
+                                response: Response<ResponseBody>
+                            ) {
+                                isLoading = false
+                                if (response.isSuccessful) {
+                                    onRegisterClick()
+                                } else {
+                                    errorMsg = "Ошибка регистрации: ${response.code()}"
+                                }
+                            }
+
+                            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                                isLoading = false
+                                errorMsg = "Ошибка: ${t.localizedMessage}"
+                            }
+                        })
+                    }
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
